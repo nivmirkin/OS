@@ -14,6 +14,7 @@
 #include <vector>
 #define MAX_LINE_SIZE 80
 #define MAX_ARG 20
+#define BLOCK_SIZE 1000
 using namespace std;
 class Job {
 public:

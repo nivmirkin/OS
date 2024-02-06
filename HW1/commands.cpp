@@ -253,8 +253,28 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 	} 
 	/*************************************************/	
 	else if (!strcmp(cmd, "diff"))
-	{
-   		
+	{	
+		int notequal = 0;
+		if (num_arg != 2){
+			printf("smash error: diff: invalid arguments\n");
+			return 1;
+		}
+	    FILE *file1 = fopen(args[1], "rb");
+	    FILE *file2 = fopen(args[2], "rb");
+		char buffer1[BLOCK_SIZE];
+		char buffer2[BLOCK_SIZE];
+		size_t bytesRead1, bytesRead2;
+		do {
+			bytesRead1 = fread(buffer1, 1, BLOCK_SIZE, file1);
+			bytesRead2 = fread(buffer2, 1, BLOCK_SIZE, file2);
+
+	        if (bytesRead1 != bytesRead2 || memcmp(buffer1, buffer2, bytesRead1) != 0) {
+	        	notequal=1; 
+	        	break;// Files are not equal
+	        }
+		} while (bytesRead1 > 0); 
+		printf("%d\n",notequal);
+		
 	} 
 	/*************************************************/	
 	else // external command
