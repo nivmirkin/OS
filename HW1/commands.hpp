@@ -8,9 +8,11 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <iomanip>
 #include <string>
 #include <ctime>
 #include <iostream>
+#include <sstream>
 #include <vector>
 #define MAX_LINE_SIZE 80
 #define MAX_ARG 20
@@ -32,6 +34,7 @@ public:
 extern int fg_jid;
 extern int fg_pid;
 extern string fg_cmd;
+extern vector<Job> jobs;
 //typedef enum { FALSE , TRUE } bool;
 int BgCmd(char* lineSize, void* jobs);
 int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString);

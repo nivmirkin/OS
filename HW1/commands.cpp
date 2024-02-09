@@ -19,12 +19,18 @@ void Job::print(bool printTime /* = true */) {
     if (this->status == 3) stopped = " (stopped)";
 
     string timeStr = "";
+
     if (printTime) {
-        timeStr = " " + to_string(secondsElapsed) + " secs" + stopped;
+        std::ostringstream ss;
+        ss << " " << std::fixed << std::setprecision(0) << secondsElapsed << " secs" << stopped;
+        timeStr = ss.str();
     }
 
     cout << "[" << this->jid << "] " << this->command << " : " << this->pid << timeStr << endl;
 }
+
+
+
 
 int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 {
@@ -33,17 +39,17 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 	char* cmd;
 	char* args[MAX_ARG];
 	char pwd[MAX_LINE_SIZE];
-	char* delimiters = " \t\n";
+	string delimiters = " \t\n";
 	int i = 0, num_arg = 0;
 	bool illegal_cmd = false; // illegal command
-    	cmd = strtok(lineSize, delimiters);
+    	cmd = strtok(lineSize, delimiters.c_str());
 	if (cmd == NULL)
 		return 0; 
    	args[0] = cmd;
 
 	for (i=1; i<MAX_ARG; i++)
 	{
-		args[i] = strtok(NULL, delimiters); 
+		args[i] = strtok(NULL, delimiters.c_str()); 
 		if (args[i] != NULL) 
 			num_arg++; 
  
@@ -211,7 +217,7 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 				}
 				else{
 					printf("(5 sec passed) Sending SIGKILL...");
-					kill(	it->pid,SIGKILL);
+					kill(it->pid,SIGKILL);
 					printf("Done.\n");
 				}
 			}
@@ -297,31 +303,60 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 //**************************************************************************************
 void ExeExternal(char *args[MAX_ARG], char* cmdString)
 {
+	
+	bool run_bg = false;
+	int i = 0;
+	while (args[i + 1] != NULL) {
+	    i++;
+	}
+	if (!strcmp(args[i], "&")){
+        run_bg = true;
+        args[i]=nullptr;
+    }
 	int pID;
     	switch(pID = fork()) 
 	{
     		case -1: 
 					// Add your code here (error)
 					
-					/* 
-					your code
-					*/
+		        perror("smash error: fork failed");
+
+		        
         	case 0 :
                 	// Child Process
-               		setpgrp();
-					
+        		    if (setpgrp() == -1) {
+
+        		        exit(EXIT_FAILURE);
+        		    }
 			        // Add your code here (execute an external command)
 					
-					/* 
-					your code
-					*/
+               	    if (execvp(args[0], args) == -1) {
+               	        perror("smash error: execvp failed");
+               	        exit(1);
+               	    }
 			
-//			/default:
-                	// Add your code here
+			default:
+		
+				    if (run_bg == false){
+				    	printf("here pid=%d\n",pID);
+				    	fg_pid = pID;
+				    	fg_cmd = cmdString;
+				    	if (waitpid(fg_pid, nullptr, WUNTRACED) == -1) {
+				    		if (errno != ECHILD) {
+				    			perror("smash error:1 waitpid failed");
+				    		}
+				    	}
+				    	fg_pid = -1;
+				    	fg_cmd = "";
+				    }
+				    else{
+				    	Job job((jobs.back().jid)+1, pID, 2, cmdString ,time(nullptr));
+				    	jobs.push_back(job);
+				    }
+				    
+
 					
-					/* 
-					your code
-					*/
+					
 	}
 }
 //**************************************************************************************

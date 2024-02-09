@@ -4,6 +4,7 @@ main file. This file contains the main function of smash
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h> 
+#include <cstddef>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +18,7 @@ main file. This file contains the main function of smash
 char* L_Fg_Cmd;
 vector <Job> jobs; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
 char lineSize[MAX_LINE_SIZE]; 
-int fg_jid=-1;
+int fg_jid=-1; // TODO check if needed
 int fg_pid=-1;
 std::string fg_cmd="";
 
@@ -28,19 +29,26 @@ std::string fg_cmd="";
 int main(int argc, char *argv[])
 {
     char cmdString[MAX_LINE_SIZE]; 	   
-
+    struct sigaction act_c, act_z;
 	
 	//signal declaretions
 	//NOTE: the signal handlers and the function/s that sets the handler should be found in siganls.c
 	 /* add your code here */
-	
+    act_c.sa_handler = &catch_ctrlc;
+    sigemptyset(&act_c.sa_mask);
+    act_c.sa_flags = 0;
+    sigaction(SIGINT, &act_c, nullptr);
+
 	/************************************/
 	//NOTE: the signal handlers and the function/s that sets the handler should be found in siganls.c
 	//set your signal handlers here
 	/* add your code here */
 
 	/************************************/
-
+    act_z.sa_handler = &catch_ctrlz;
+    sigemptyset(&act_z.sa_mask);
+    act_z.sa_flags = 0;
+    sigaction(SIGTSTP, &act_z, nullptr);
 	/************************************/
 	// Init globals 
  // delete
