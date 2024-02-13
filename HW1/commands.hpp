@@ -31,6 +31,7 @@ public:
 
     void print(bool printTime=true);
 };
+void CleanupJobs(vector<Job>& jobs); 
 extern int fg_jid;
 extern int fg_pid;
 extern string fg_cmd;

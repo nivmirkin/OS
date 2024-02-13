@@ -29,13 +29,59 @@ void Job::print(bool printTime /* = true */) {
     cout << "[" << this->jid << "] " << this->command << " : " << this->pid << timeStr << endl;
 }
 
+/////////////////////cleaning up function
+void CleanupJobs(vector<Job>& jobs) {
+    cout << "Cleaning up finished processes..." << endl;
+    if(jobs.empty()){
+    	return ;
+    }
+    for (auto it = jobs.begin(); it != jobs.end();++it) {
+    	
+      int eraes=waitpid(it->pid, nullptr, WNOHANG);//kill(it->pid,0);
+      if (eraes==0)
+      {
+    	   cout << "smash error:proses still alive" << endl;
+				
+      }
+      else if((eraes==it->pid)||(errno==ECHILD)){//errno==ESRCH
+    	  cout << "smash error: dead can eras" << endl;
 
+			jobs.erase(it);
+		}
+			else{
+				perror("smash error: we have a problem in kill ");
+			}
+    }
+
+//    for (auto it = jobs.begin(); it != jobs.end();) {
+//        int status;
+//        pid_t result = waitpid(it->pid, &status, 0);//WNOHANG | WUNTRACED
+//
+//        if (result == -1) {
+//            perror("smash error: 1111waitpid failed");
+//        } else if (result == 0) {
+//            // Process is still running
+//            ++it;
+//        } else {
+//            // Process has exited or terminated by signal
+//            if (WIFEXITED(status) || WIFSIGNALED(status)) {
+//                cout << "[" << it->jid << "] " << it->command << " - Done." << endl;
+//                it = jobs.erase(it);
+//            } else if (WIFSTOPPED(status)) {
+//                // Process has been stopped
+//                it->status = 3; // Mark as stopped
+//                ++it;
+//            }
+//        }
+//    }
+}
+//////////////////////////
 
 
 int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 {
 
-
+	
 	char* cmd;
 	char* args[MAX_ARG];
 	char pwd[MAX_LINE_SIZE];
@@ -54,6 +100,7 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 			num_arg++; 
  
 	}
+	CleanupJobs(jobs);
 /*************************************************/
 // Built in Commands PLEASE NOTE NOT ALL REQUIRED
 // ARE IN THIS CHAIN OF IF COMMANDS. PLEASE ADD
@@ -101,8 +148,8 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "jobs")) 
-	{
-
+	{	
+		
 		for (auto it = jobs.begin(); it != jobs.end(); ++it) {
 		// Dereference the iterator to access the Job object
 			Job& job = *it;
@@ -323,6 +370,8 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 		return 1;
 	}
     return 0;
+    
+
 }
 //**************************************************************************************
 // function name: ExeExternal
@@ -344,17 +393,17 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
     }
 	int pID;
     	switch(pID = fork()) 
-	{
+    	{
     		case -1: 
 					// Add your code here (error)
 					
 		        perror("smash error: fork failed");
-
+		        
 		        
         	case 0 :
                 	// Child Process
         		    if (setpgrp() == -1) {
-        		    	perror("smash error: setpgrp failed")
+        		    	perror("smash error: setpgrp failed");
         		        exit(EXIT_FAILURE);
         		    }
 			        // Add your code here (execute an external command)
@@ -387,12 +436,13 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 				    		 jobs.push_back(job);
 				    	}
 				    }
-				    
+				  
 
 					
 					
 	}
 }
+
 //**************************************************************************************
 // function name: BgCmd
 // Description: if command is in background, insert the command to jobs
