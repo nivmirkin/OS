@@ -31,49 +31,23 @@ void Job::print(bool printTime /* = true */) {
 
 /////////////////////cleaning up function
 void CleanupJobs(vector<Job>& jobs) {
-    cout << "Cleaning up finished processes..." << endl;
     if(jobs.empty()){
     	return ;
     }
-    for (auto it = jobs.begin(); it != jobs.end();++it) {
+    
+    for (auto it = jobs.begin(); it != jobs.end();) {
     	
-      int eraes=waitpid(it->pid, nullptr, WNOHANG);//kill(it->pid,0);
-      if (eraes==0)
-      {
-    	   cout << "smash error:proses still alive" << endl;
-				
+      int res=waitpid(it->pid, nullptr, WNOHANG);
+      if (res==0){
+    	  it++;
       }
-      else if((eraes==it->pid)||(errno==ECHILD)){//errno==ESRCH
-    	  cout << "smash error: dead can eras" << endl;
-
-			jobs.erase(it);
-		}
-			else{
-				perror("smash error: we have a problem in kill ");
-			}
+      else if((res==it->pid)||(errno==ECHILD)){
+		  it = jobs.erase(it);
+      }
+      else{
+    	  perror("smash error: waitpid failed");
+      }
     }
-
-//    for (auto it = jobs.begin(); it != jobs.end();) {
-//        int status;
-//        pid_t result = waitpid(it->pid, &status, 0);//WNOHANG | WUNTRACED
-//
-//        if (result == -1) {
-//            perror("smash error: 1111waitpid failed");
-//        } else if (result == 0) {
-//            // Process is still running
-//            ++it;
-//        } else {
-//            // Process has exited or terminated by signal
-//            if (WIFEXITED(status) || WIFSIGNALED(status)) {
-//                cout << "[" << it->jid << "] " << it->command << " - Done." << endl;
-//                it = jobs.erase(it);
-//            } else if (WIFSTOPPED(status)) {
-//                // Process has been stopped
-//                it->status = 3; // Mark as stopped
-//                ++it;
-//            }
-//        }
-//    }
 }
 //////////////////////////
 
@@ -419,7 +393,7 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 				    	fg_pid = pID;
 				    	fg_cmd = cmdString;
 				    	if (waitpid(fg_pid, nullptr, WUNTRACED) == -1) {
-				    		if (errno != ECHILD) {
+				    		if ((errno != ECHILD) && (errno != EINTR)) {
 				    			perror("smash error: waitpid failed");
 				    		}
 				    	}
