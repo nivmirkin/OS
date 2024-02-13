@@ -30,8 +30,14 @@ void catch_ctrlz(int ctrlz){
 		int res= kill(fg_pid,SIGSTOP);
 		if (!res){
 			printf("smash: process %d was stopped\n",fg_pid);
-			Job job((jobs.back().jid)+1, fg_pid, 3, fg_cmd ,time(nullptr));
-			jobs.push_back(job);
+		 	if (!jobs.empty()) {
+				Job job((jobs.back().jid) + 1, fg_pid, 3, fg_cmd, time(nullptr));
+				jobs.push_back(job);
+			}
+			else{
+				Job job(1, fg_pid, 3, fg_cmd, time(nullptr));
+				jobs.push_back(job);
+			}
 			fg_pid = -1;
 			fg_jid = -1;
 			fg_cmd = "";

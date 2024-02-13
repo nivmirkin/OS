@@ -51,11 +51,7 @@ int main(int argc, char *argv[])
     sigaction(SIGTSTP, &act_z, nullptr);
 	/************************************/
 	// Init globals 
- // delete
- 	Job job1(1, 101, 2, "cmd1",time(nullptr));
- 	jobs.push_back(job1);
-   	Job job2(2, 103, 3, "cmd2",time(nullptr));
-   	jobs.push_back(job2);
+   	jobs.clear();
 	
 	L_Fg_Cmd =(char*)malloc(sizeof(char)*(MAX_LINE_SIZE+1));
 	if (L_Fg_Cmd == NULL) 
