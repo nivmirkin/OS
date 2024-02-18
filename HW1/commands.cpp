@@ -146,7 +146,7 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 	else if (!strcmp(cmd, "fg")) 
 	{
 		bool found = false;
-		int jobid = 0;
+		int jobid = -1;
 		if (num_arg > 1){
 			fprintf(stderr,"smash error: fg: invalid arguments\n");
 			return 1;
@@ -154,8 +154,12 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 		else if (num_arg == 1){
 			string arg1 = args[1];
 			jobid = atoi(arg1.c_str());
+			if (!jobid){
+				fprintf(stderr,"smash error: fg: invalid arguments\n");
+				return 1;
+			}
 		}
-		if (!jobid && jobs.empty()){
+		if ((jobid==-1) && jobs.empty()){
 			fprintf(stderr,"smash error: fg: jobs list is empty\n");
 			return 1;
 		}
@@ -164,7 +168,7 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 
 			Job& job = *it;
 			// Do something with the job
-			if (jobid == job.jid || !jobid){
+			if (jobid == job.jid || jobid == -1){
 				found = true;
 				fg_cmd = job.command;
 				fg_pid = job.pid;
@@ -271,13 +275,14 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 			}
 		}
 		jobs.clear();
+		exit(0);
 	} 
 	/*************************************************/
 	else if (!strcmp(cmd, "kill"))
 	{
 		string arg1 = args[1];
 		string arg2 = args[2];
-		if (num_arg > 2 || args[1][0] != '-' ){
+		if (num_arg > 2 || args[1][0] != '-' || arg1.size()!=2){
 			fprintf(stderr,"smash error: kill: invalid arguments\n");
 			return 1;
 		}
@@ -295,7 +300,7 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 					perror("smash error: kill failed");
 				}
 				else if(!res){
-					printf("signal number %d was sent to pid %d",signalNumber,job.pid);
+					printf("signal number %d was sent to pid %d\n",signalNumber,job.pid);
 					jobs.erase(it);
 				}
 				return 0;
