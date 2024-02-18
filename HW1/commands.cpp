@@ -29,6 +29,7 @@ void Job::print(bool printTime /* = true */) {
     cout << "[" << this->jid << "] " << this->command << " : " << this->pid << timeStr << endl;
 }
 
+
 /////////////////////cleaning up function
 void CleanupJobs(vector<Job>& jobs) {
     if(jobs.empty()){
@@ -250,7 +251,7 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 		if (term){
 			for (auto it = jobs.begin(); it != jobs.end(); ++it) {
 				string cmd = it->command;
-				cout << "["<< it->pid << "] "<< it->command << " - Sending SIGTERM...";
+				cout << "["<< it->pid << "] "<< it->command << " - Sending SIGTERM..." << flush;
 				int res = kill(it->pid,SIGTERM);
 				if (res == -1){
 					perror("smash error: kill failed");
@@ -426,9 +427,9 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 int BgCmd(char* lineSize, void* jobs)
 {
 
-	char* Command;
-	char* delimiters = " \t\n";
-	char *args[MAX_ARG];
+//	char* Command;
+//	char* delimiters = " \t\n";
+//	char *args[MAX_ARG];
 	if (lineSize[strlen(lineSize)-2] == '&')
 	{
 		lineSize[strlen(lineSize)-2] = '\0';

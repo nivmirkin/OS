@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -g -Wall -std=c++11
+CFLAGS = -g -Wall -Werror -pedantic-errors -DNDEBUG  -std=c++11
 CCLINK = $(CC)
 OBJS = smash.o commands.o signals.o
 RM = rm -f
