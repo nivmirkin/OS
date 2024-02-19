@@ -31,14 +31,14 @@ public:
 
     void print(bool printTime=true);
 };
-void CleanupJobs(vector<Job>& jobs); 
+void CleanupJobs(vector<Job>& jobs); //cleaning up finished jobs function
 extern int fg_jid;
 extern int fg_pid;
 extern string fg_cmd;
 extern vector<Job> jobs;
 //typedef enum { FALSE , TRUE } bool;
-int BgCmd(char* lineSize, void* jobs);
-int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString);
-void ExeExternal(char *args[MAX_ARG], char* cmdString);
+int BgCmd(char* lineSize, void* jobs);//if command is in background, insert the command to jobs
+int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString);//Function to execute built-in commands and external commands
+void ExeExternal(char *args[MAX_ARG], char* cmdString);//executes external command
 
 #endif

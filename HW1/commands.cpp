@@ -29,8 +29,12 @@ void Job::print(bool printTime /* = true */) {
     cout << "[" << this->jid << "] " << this->command << " : " << this->pid << timeStr << endl;
 }
 
-
-/////////////////////cleaning up function
+//********************************************
+// function name: CleanupJobs
+// Description: cleaning up finished jobs function
+// Parameters: vector<Job>& jobs
+// Returns: void
+//**************************************************************************************
 void CleanupJobs(vector<Job>& jobs) {
     if(jobs.empty()){
     	return ;
@@ -52,7 +56,12 @@ void CleanupJobs(vector<Job>& jobs) {
 }
 //////////////////////////
 
-
+//********************************************
+// function name: ExeCmd
+// Description:  Function to execute built-in commands and external commands
+// Parameters: vector<Job>& jobs, char* lineSize, char* cmdString
+// Returns: (int) 0-command execution was successful 1-command execution encountered an error or failed.
+//**************************************************************************************
 int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 {
 

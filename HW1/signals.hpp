@@ -18,9 +18,9 @@ extern int fg_pid;
 extern string fg_cmd;
 extern vector<Job> jobs;
 
-bool compareJob(const Job& job1, const Job& job2);
-void insertSorted(vector<Job> &jobs, const Job &newJob);
-void catch_ctrlc(int ctrlc);
-void catch_ctrlz(int ctrlz);
+bool compareJob(const Job& job1, const Job& job2);// Function to compare Job objects based on their job IDs
+void insertSorted(vector<Job> &jobs, const Job &newJob);// Function to insert a Job into a sorted vector of Jobs
+void catch_ctrlc(int ctrlc);// Signal handler for Control-C (SIGINT)
+void catch_ctrlz(int ctrlz);// Signal handler for Control-Z (SIGTSTP)
 #endif
 
