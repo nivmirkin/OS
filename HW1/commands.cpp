@@ -127,7 +127,8 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 				perror("smash error: getcwd failed");
 		}
 		else{
-		      printf("%s\n", pwd);
+			cout << pwd <<endl;
+		      //printf("%s\n", pwd);
 		}
 	}
 	/*************************************************/
@@ -149,7 +150,7 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 			perror("smash error: showpid failed");
 			return 1;
 		}
-		printf("smash pid is %d\n",pid);
+		cout << "smash pid is " << pid << endl;
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "fg")) 
@@ -271,15 +272,15 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 				}
 				sleep(5);
 				if (waitpid(it->pid,nullptr,WNOHANG)){
-					printf("Done.\n");
+					cout << "Done." << endl;
 				}
 				else{
-					printf("(5 sec passed) Sending SIGKILL...");
+					cout << "(5 sec passed) Sending SIGKILL..." << flush;
 					res = kill(it->pid,SIGKILL);
 					if (res == -1){
 						perror("smash error: kill failed");
 					}
-					printf("Done.\n");
+					cout << "Done." <<endl;
 				}
 			}
 		}
@@ -309,7 +310,8 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 					perror("smash error: kill failed");
 				}
 				else if(!res){
-					printf("signal number %d was sent to pid %d\n",signalNumber,job.pid);
+					cout << "signal number "<< signalNumber << "was sent to pid " << job.pid <<endl;
+					//printf("signal number %d was sent to pid %d\n",signalNumber,job.pid);
 					jobs.erase(it);
 				}
 				return 0;
@@ -365,9 +367,11 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 		close(file1);
 		close(file2);
 		if(equal){
-			printf("0\n");
+			cout << "0" <<endl;
+			//printf("0\n");
 		}else{
-			printf("1\n");
+			cout << "1" <<endl;
+			//printf("1\n");
 		}
 		
 	}
