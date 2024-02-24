@@ -93,7 +93,8 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 	if (!strcmp(cmd, "cd") ) 
 	{
 		if (num_arg > 1){
-			fprintf(stderr,"smash error: cd: too many arguments\n");
+			cerr << "smash error: cd: too many arguments" << endl; 
+			//fprintf(stderr,"smash error: cd: too many arguments\n");
 			return 1;
 		}
 		if (getcwd(pwd, sizeof(pwd)) == NULL){
@@ -102,7 +103,8 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 		else{
 			if (!strcmp(args[1], "-")){
 				if (oldpwd == NULL || !strcmp(oldpwd,"\0")){
-					fprintf(stderr,"smash error: cd: OLDPWD not set\n");
+					cerr << "smash error: cd: OLDPWD not set" <<endl;
+					//fprintf(stderr,"smash error: cd: OLDPWD not set\n");
 					return 1;
 				}
 				char tmp[MAX_LINE_SIZE];
@@ -158,19 +160,22 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 		bool found = false;
 		int jobid = -1;
 		if (num_arg > 1){
-			fprintf(stderr,"smash error: fg: invalid arguments\n");
+			cerr << "smash error: fg: invalid arguments" <<endl;
+			//fprintf(stderr,"smash error: fg: invalid arguments\n");
 			return 1;
 		}
 		else if (num_arg == 1){
 			string arg1 = args[1];
 			jobid = atoi(arg1.c_str());
 			if (!jobid){
-				fprintf(stderr,"smash error: fg: invalid arguments\n");
+				cerr << "smash error: fg: invalid arguments" << endl;
+				//fprintf(stderr,"smash error: fg: invalid arguments\n");
 				return 1;
 			}
 		}
 		if ((jobid==-1) && jobs.empty()){
-			fprintf(stderr,"smash error: fg: jobs list is empty\n");
+			cerr << "smash error: fg: jobs list is empty" << endl;
+			//fprintf(stderr,"smash error: fg: jobs list is empty\n");
 			return 1;
 		}
 		for (auto it = jobs.end()-1; it != jobs.begin()-1; it--) {
@@ -200,7 +205,8 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 		}
 
 		if (jobs.empty() || !found ){
-			fprintf(stderr,"smash error: fg: job-id %d does not exist\n", jobid);
+			cerr << "smash error: fg: job-id "<< jobid<<" does not exist" << endl;
+			//fprintf(stderr,"smash error: fg: job-id %d does not exist\n", jobid);
 			return 1;
 		}
 
@@ -211,7 +217,8 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 		bool found = false;
 		int jobid = 0;
 		if (num_arg > 1){
-			fprintf(stderr,"smash error: bg: invalid arguments\n");
+			cerr << "smash error: bg: invalid arguments" << endl;
+			//fprintf(stderr,"smash error: bg: invalid arguments\n");
 			return 1;
 		}
 		else if (num_arg == 1){
@@ -228,7 +235,8 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 			// Do something with the job
 			if (jobid == job.jid || !jobid){
 				if (jobid == job.jid && job.status == 2){
-					fprintf(stderr,"smash error: bg: job-id %d is already running in the background\n",jobid);
+					cerr << "smash error: bg: job-id "<< jobid <<" is already running in the background" <<endl;
+					//fprintf(stderr,"smash error: bg: job-id %d is already running in the background\n",jobid);
 					return 0;
 				}
 				if (job.status == 3){
@@ -244,12 +252,14 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 			}
 		}
 		if (!jobid && !found){
-			fprintf(stderr,"smash error: bg: there are no stopped jobs to resume\n");
+			cerr << "smash error: bg: there are no stopped jobs to resume" <<endl;
+			//fprintf(stderr,"smash error: bg: there are no stopped jobs to resume\n");
 			return 1;
 		}
 
 		if (jobs.empty() || !found ){
-			fprintf(stderr,"smash error: bg: job-id %d does not exist\n", jobid);
+			cerr << "smash error: bg: job-id "<< jobid <<" does not exist\n" << endl;
+			//fprintf(stderr,"smash error: bg: job-id %d does not exist\n", jobid);
 			return 1;
 		}
 	}
@@ -293,7 +303,8 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 		string arg1 = args[1];
 		string arg2 = args[2];
 		if (num_arg > 2 || args[1][0] != '-' || arg1.size()!=2){
-			fprintf(stderr,"smash error: kill: invalid arguments\n");
+			cerr << "smash error: kill: invalid arguments" << endl;
+			//fprintf(stderr,"smash error: kill: invalid arguments\n");
 			return 1;
 		}
 		int signalNumber = atoi(arg1.substr(1).c_str());
@@ -319,7 +330,8 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 
 		}
 		if (!found){
-			fprintf(stderr,"smash error: kill:job-id %d does not exist\n",jobid);
+			cerr << "smash error: kill:job-id "<< jobid <<" does not exist" <<endl;
+			//fprintf(stderr,"smash error: kill:job-id %d does not exist\n",jobid);
 			return 1;
 		}
 
@@ -329,7 +341,8 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 	{	
 		bool equal = true ;
 		if (num_arg != 2 ){
-				fprintf(stderr,"smash error: diff: invalid arguments\n");
+				cerr << "smash error: diff: invalid arguments" << endl;
+				//fprintf(stderr,"smash error: diff: invalid arguments\n");
 				return 1;
 		}
 		
