@@ -321,7 +321,7 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 					perror("smash error: kill failed");
 				}
 				else if(!res){
-					cout << "signal number "<< signalNumber << "was sent to pid " << job.pid <<endl;
+					cout << "signal number "<< signalNumber << " was sent to pid " << job.pid <<endl;
 					//printf("signal number %d was sent to pid %d\n",signalNumber,job.pid);
 					jobs.erase(it);
 				}
@@ -349,8 +349,8 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 		int file1 = open (args[1] , O_RDONLY);
 		int file2 = open (args[2] , O_RDONLY);
 		if (file1 == -1 || file2 == -1) {
-	        perror("Error opening files---to check is nessesery");
-		        return 0;
+		    perror("smash error: open failed");
+		        return 1;
 		}
 		char buffer1[BUFFER_SIZE];
 		char buffer2[BUFFER_SIZE];
@@ -361,8 +361,8 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 			bytesRead2 = read(file2,buffer2, BUFFER_SIZE);
 			
 			if (bytesRead1 == -1 || bytesRead2 == -1) {
-				        perror("Error opening files---to check is nessesery");
-				        break;
+				        perror("smash error: read failed");
+				        return 1;
 			}
 			
 			if (bytesRead1 == 0 && bytesRead2 == 0) {
@@ -388,29 +388,7 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 		}
 		
 	}
-		/*
-		int notequal = 0;
-		if (num_arg != 2){
-			fprintf(stderr,"smash error: diff: invalid arguments\n");
-			return 1;
-		}
-	    FILE *file1 = fopen(args[1], "rb");
-	    FILE *file2 = fopen(args[2], "rb");
-		char buffer1[BLOCK_SIZE];
-		char buffer2[BLOCK_SIZE];
-		size_t bytesRead1, bytesRead2;
-		do {
-			bytesRead1 = fread(buffer1, 1, BLOCK_SIZE, file1);
-			bytesRead2 = fread(buffer2, 1, BLOCK_SIZE, file2);
 
-	        if (bytesRead1 != bytesRead2 || memcmp(buffer1, buffer2, bytesRead1) != 0) {
-	        	notequal=1; 
-	        	break;// Files are not equal
-	        }
-		} while (bytesRead1 > 0); 
-		printf("%d\n",notequal);
-	}
-		*/
 		
 	 
 	/*************************************************/	
