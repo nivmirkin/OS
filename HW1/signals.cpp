@@ -48,7 +48,6 @@ void catch_ctrlc(int ctrlc){
 		int res= kill(fg_pid,SIGKILL);
 		if (!res){
 			cout << "smash: process "<<fg_pid <<" was killed" << endl;
-			//printf("smash: process %d was killed\n",fg_pid);
             // Reset foreground process information
 
 			fg_pid = -1;
@@ -69,7 +68,6 @@ void catch_ctrlc(int ctrlc){
 void catch_ctrlz(int ctrlz){
     // Print a message indicating the suspension by Control-Z
 	cout << "smash: caught ctrl-Z" <<endl;
-	//printf("smash: caught ctrl-Z\n");
     // Check if there is a foreground process to suspend
 	if (fg_pid > 0 ){
     // Attempt to stop the foreground process with SIGSTOP
@@ -77,7 +75,6 @@ void catch_ctrlz(int ctrlz){
 		int res= kill(fg_pid,SIGSTOP);
 		if (!res){
 			cout << "smash: process "<<fg_pid <<" was stopped" << endl;
-			//printf("smash: process %d was stopped\n",fg_pid);
             // Add the stopped job to the list of jobs (sorted)
 
 			if (fg_jid > 0){
