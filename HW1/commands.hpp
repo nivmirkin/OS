@@ -14,9 +14,11 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <fcntl.h>
 #define MAX_LINE_SIZE 80
 #define MAX_ARG 20
 #define BLOCK_SIZE 1000
+#define BUFFER_SIZE 5000
 using namespace std;
 class Job {
 public:

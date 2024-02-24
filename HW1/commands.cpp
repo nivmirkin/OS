@@ -125,7 +125,7 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 	{
 		if (getcwd(pwd, sizeof(pwd)) == NULL){
 				perror("smash error: getcwd failed");
-			}
+		}
 		else{
 		      printf("%s\n", pwd);
 		}
@@ -325,6 +325,53 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 	/*************************************************/	
 	else if (!strcmp(cmd, "diff"))
 	{	
+		bool equal = true ;
+		if (num_arg != 2 ){
+				fprintf(stderr,"smash error: diff: invalid arguments\n");
+				return 1;
+		}
+		
+		int file1 = open (args[1] , O_RDONLY);
+		int file2 = open (args[2] , O_RDONLY);
+		if (file1 == -1 || file2 == -1) {
+	        perror("Error opening files---to check is nessesery");
+		        return 0;
+		}
+		char buffer1[BUFFER_SIZE];
+		char buffer2[BUFFER_SIZE];
+		ssize_t bytesRead1, bytesRead2;
+		off_t i = 0;
+		while(equal){
+			bytesRead1 = read(file1,buffer1, BUFFER_SIZE);
+			bytesRead2 = read(file2,buffer2, BUFFER_SIZE);
+			
+			if (bytesRead1 == -1 || bytesRead2 == -1) {
+				        perror("Error opening files---to check is nessesery");
+				        break;
+			}
+			
+			if (bytesRead1 == 0 && bytesRead2 == 0) {
+			            // Both files reached the end simultaneously, and they are identical
+			            
+			            break;
+			}
+			i += bytesRead1;
+			
+	        if (bytesRead1 != bytesRead2 || memcmp(buffer1, buffer2, bytesRead1) != 0){//bytesRead1 == 0 || bytesRead2 == 0 || buffer1 != buffer2) {
+	        	equal = false ;
+	            break;
+	        }
+		}
+		close(file1);
+		close(file2);
+		if(equal){
+			printf("0\n");
+		}else{
+			printf("1\n");
+		}
+		
+	}
+		/*
 		int notequal = 0;
 		if (num_arg != 2){
 			fprintf(stderr,"smash error: diff: invalid arguments\n");
@@ -345,8 +392,10 @@ int ExeCmd(vector<Job>& jobs, char* lineSize, char* cmdString)
 	        }
 		} while (bytesRead1 > 0); 
 		printf("%d\n",notequal);
+	}
+		*/
 		
-	} 
+	 
 	/*************************************************/	
 	else // external command
 	{
@@ -385,10 +434,7 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
     	{
     		case -1: 
 					// Add your code here (error)
-					
 		        perror("smash error: fork failed");
-		        
-		        
         	case 0 :
                 	// Child Process
         		    if (setpgrp() == -1) {
