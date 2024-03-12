@@ -26,7 +26,7 @@ class Bank {
 	int BankBalance;	
 };
 
-class Accounts{
+class Account{
 	int ID;
 	int PW[4];
 	int balance ;
