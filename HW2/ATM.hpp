@@ -17,11 +17,20 @@ using namespace std ;
 
 
 #define SUCCESS 1
-#define FAILE 0
+#define FAIL 0
 
 class ATM {
-	int ID
-	string file
+    int ID;
+    FILE* fileHandle;
+
+    bool loadFile(const string& filePath);
+
+    void ATMrun();
+
+    bool openAcc(vector<string> words);
+
+public:
+    ATM(int id);
 };
 
 #endif
