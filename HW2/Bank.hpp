@@ -3,6 +3,7 @@
 
 #include "ATM.hpp"
 #include "bank.hpp"
+#include "Acnt.hpp"
 
 #include <unistd.h>
 #include <stdio.h>
