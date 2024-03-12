@@ -11,17 +11,33 @@
 #include <pthread.h>
 #include <fstream>
 #include <list>
-
+#include <map>
+extern map<int, Account> accounts;
 
 using namespace std ;
 
 
 #define SUCCESS 1
-#define FAILE 0
+#define FAIL 0
 
 class ATM {
-	int ID
-	string file
+    int id;
+    FILE* fileHandle;
+
+    bool loadFile(const string& filePath);
+
+    void ATMrun();
+
+    bool openAcc(vector<string> words);
+    
+    bool deposit(vector<string> words);
+
+    int getID();
+
+public:
+    ATM(int id);
 };
 
+
+bool isIDPresent(int id); 
 #endif
