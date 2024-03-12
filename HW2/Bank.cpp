@@ -3,8 +3,31 @@
 #include "ATM.hpp"
 
 #define LOG "log.txt"
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% function of bank%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% function of bank%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+bank::bank(){
+	
+}
+//%%%%%%%%%
+bank::bank_commissions_thread(){
+	whlie(){
+		int Commission_Percent = rand() % 5 + 1;
+		updating_BankBalance(Commission_Percent);
+		sleep(3);
+	}
+}
+//%%%%%%%%
+bank::updating_BankBalance(int Commission_Percent ){
+	 for (auto it = accounts.begin(); it != accounts.end(); ++it) {
+		 if(it->get_amount > 0){
+			 int Commission_from_acc =(int) round((double)( Commission_Percent * it->get_amount) / 100) ;
+			 it.balance -= Commission_from_acc;
+			 this.BankBalance += Commission_from_acc;
+		 }
+		 
+	 }
+}
 
 //######################################### global ########################################
 pthread_mutex_t log_lock = PTHREAD_MUTEX_INITIALIZER;
