@@ -27,10 +27,18 @@ class Bank {
 	int BankBalance;	
 };
 
-class Accounts{
+class Account{
 	int ID;
 	int PW[4];
 	int balance ;
+	
+public:
+	Account(int id, string pwd, int amt);
+
+	bool comparePassword(string pwd);
+
+	int updateAmount(int newAmount);
+
 };
 
 #endif
