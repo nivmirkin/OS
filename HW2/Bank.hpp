@@ -22,22 +22,22 @@
 using namespace std;
 
 class Bank {
-	vsctor<Accounts> AccountsList;
 	int BankBalance;	
 };
 
 class Account{
 	int ID;
-	int PW[4];
-	int balance ;
+	string PW;
+	int amount;
 	
 public:
 	Account(int id, string pwd, int amt);
 
 	bool comparePassword(string pwd);
 
-	int updateAmount(int newAmount);
+	bool updateAmount(int addedAmount);
 
 };
+
 
 #endif
