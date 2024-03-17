@@ -12,7 +12,7 @@
 #include <fstream>
 #include <list>
 #include <map>
-extern map<int, Account> accounts;
+extern Bank bank;
 
 using namespace std ;
 
@@ -37,6 +37,7 @@ class ATM {
     bool checkBalance(vector<string> words);
 
     bool closeAcc(vector<string> words);
+
 
     int getID();
 

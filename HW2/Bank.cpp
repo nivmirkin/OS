@@ -7,11 +7,11 @@
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% function of bank%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-bank::bank(){
+int Bank::bank(){
 	
 }
 //%%%%%%%%%
-bank::bank_commissions_thread(){
+int Bank::bank_commissions_thread(){
 	whlie(){
 		int Commission_Percent = rand() % 5 + 1;
 		updating_BankBalance(Commission_Percent);
@@ -19,7 +19,7 @@ bank::bank_commissions_thread(){
 	}
 }
 //%%%%%%%%
-bank::updating_BankBalance(int Commission_Percent ){
+int Bank::updating_BankBalance(int Commission_Percent ){
 	 for (auto it = accounts.begin(); it != accounts.end(); ++it) {
 		 if(it->get_amount > 0){
 			 int Commission_from_acc =(int) round((double)( Commission_Percent * it->get_amount) / 100) ;
@@ -29,6 +29,127 @@ bank::updating_BankBalance(int Commission_Percent ){
 		 
 	 }
 }
+
+int Bank::addAcc(int id, string pswd, int amount) {
+	int res = SUCCESS;
+	lock_write();
+	if (accounts.find(id) != accounts.end()) {
+		res = ACC_EXST;
+	}
+	else {
+		Account acnt(id, pswd, amount) :
+		accounts.emplace(id, acnt);
+	}
+	unlock_write();
+	return res;
+}
+
+int Bank::deposit(int id, string pswd, int amount) {
+	int res;
+	lock_read();
+	auto it = accounts.find(accountId);
+	if (it == accounts.end()) {
+		res = ACC_NOT_EXST;
+	}
+	else {
+		if (!it->second->comparePassword(pswd)) {
+			res = WROND_PSWD;
+		}
+		else{
+			res = it->second->updateAmount(amount);
+		}
+	}
+	unlock_read();
+	return res;
+}
+
+int Bank::withdraw(int id, string pswd, int amount) {
+	int res;
+	lock_read();
+	auto it = accounts.find(accountId);
+	if (it == accounts.end()) {
+		res = ACC_NOT_EXST;
+	}
+	else {
+		if (!it->second->comparePassword(pswd)) {
+			res = WROND_PSWD;
+		}
+		else {
+			res = it->second->updateAmount(-amount);
+			if (res < 0) {
+				res = INSFCNT_FUNDS;
+			}
+		}
+	}
+	unlock_read();
+	return res;
+}
+
+
+int Bank::checkBalance(int id, string pswd) {
+	int res;
+	lock_read();
+	auto it = accounts.find(accountId);
+	if (it == accounts.end()) {
+		res = ACC_NOT_EXST;
+	}
+	else {
+		if (!it->second->comparePassword(pswd)) {
+			res = WROND_PSWD;
+		}
+		else {
+			res = it->second->getAmount()
+		}
+	}
+	unlock_read();
+	return res;
+}
+
+
+int Bank::removeAcc(int id,string pswd) {
+	int res;
+	lock_write();
+	auto it = accounts.find(accountId);
+	if (it == accounts.end()) {
+		res = ACC_NOT_EXST;
+	}
+	else {
+		if (!it->second->comparePassword(pswd)) {
+			res = WROND_PSWD;
+		}
+		else {
+			res = it->second->getAmount();
+			accounts.erase(it);
+		}
+	}
+	unlock_write();
+	return res;
+}
+
+void Bank::lock_write(void) {
+	pthread_mutex_lock(&write_lock);
+}
+void Bank::unlock_write(void) {
+	pthread_mutex_unlock(&write_lock);
+}
+
+void Bank::lock_read(void) {
+	pthread_mutex_lock(&read_lock);
+	read_cnt++;
+	if (read_cnt == 1) {
+		pthread_mutex_lock(&write_lock);
+	}
+	pthread_mutex_unlock(&read_lock);
+}
+void Bank::unlock_read(void) {
+	pthread_mutex_lock(&read_lock);
+	read_cnt--;
+	if (read_cnt == 0) {
+		pthread_mutex_unlock(&write_lock);
+	}
+	pthread_mutex_unlock(&read_lock);
+}
+
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& function of accounts &&&&&&&&&&&&&&&&&&
 Account::Account(int id, string pwd, int amt) : ID(id), password(pwd), amount(amt), read_cnt(0) {
 	pthread_mutex_init(&write_lock, NULL);
@@ -87,12 +208,9 @@ int Account::getAmount() {
 	return res;
 }
 
-void  Account::lockAccount() { accountMutex.lock(); }
-void  Account::unlockAccount() { accountMutex.unlock(); }
-};
 //######################################### global ########################################
 pthread_mutex_t log_lock = PTHREAD_MUTEX_INITIALIZER;
-map<int, Account> accounts;
+Bank bank;
 //***************************************** main *******************************************
 int main (int argc, char *argv[]) {
 	int N = argc -1 ;
