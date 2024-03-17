@@ -32,6 +32,12 @@ class ATM {
     
     bool deposit(vector<string> words);
 
+    bool withdraw(vector<string> words);
+
+    bool checkBalance(vector<string> words);
+
+    bool closeAcc(vector<string> words);
+
     int getID();
 
 public:

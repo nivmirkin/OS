@@ -27,13 +27,13 @@ void ATM::ATMrun() {
                 openAcc(words);
             }
             else if (line[0] == 'D') {
-
+                deposit(words);
             }
             else if (line[0] == 'W') {
-
+                withdraw(words);
             }
             else if (line[0] == 'B') {
-
+                checkBalance(words);
             }
             else if (line[0] == 'Q') {
 
@@ -92,6 +92,7 @@ bool ATM::deposit(vector<string> words){
             pswd = w;
             if (!accptr->comparePassword(pswd)) {
                 cerr << "Error " << getID() << ": Your transaction failed - password for account id " << id << " is incorrect" << endl;
+                return true;
             }
         }
         else if (arg == 3) {
@@ -99,9 +100,106 @@ bool ATM::deposit(vector<string> words){
         }
         arg++;
     }
-    accptr->updateAmount(amount);
+    int res = accptr->updateAmount(amount);
+    cout << getID() << ": Account " << id << " new balance is " << res << " after " << amount << " $ was deposited" << endl;
 
-    cout << getID() << ": New account id is " << id << " with password " << pswd << " and initial balance " << amount << endl;
+    return false;
+}
+
+
+bool ATM::withdraw(vector<string> words) {
+    int arg = 0;
+    int id, amount,res;
+    string pswd;
+    Account* accptr;
+    for (const auto& w : words) {
+        if (arg == 1) {
+            id = atoi(w.c_str());
+            accptr = getAcntByID(id);
+
+            if (acctr == nullptr) {
+                cerr << "Error " << getID() << ": Your transaction failed - account id " << id << " does not exist" << endl;
+                return true;
+            }
+
+        }
+        else if (arg == 2) {
+            pswd = w;
+            if (!accptr->comparePassword(pswd)) {
+                cerr << "Error " << getID() << ": Your transaction failed - password for account id " << id << " is incorrect" << endl;
+                return true;
+            }
+        }
+        else if (arg == 3) {
+            amount = atoi(w.c_str());
+            res = accptr->updateAmount(-amount);
+            if (res < 0) {
+                cerr << "Error " << getID() << ": Your transaction failed - account id " << id << " balance is lower than amount " << amount << endl;
+                return true;
+            }
+        }
+        arg++;
+
+    }  
+    cout << getID() << ": Account " << id << " new balance is " << res << " after " << amount << " $ was withdrew" << endl;
+    return false;
+}
+
+bool ATM::checkBalance(vector<string> words) {
+    int arg = 0;
+    int id, amount, res;
+    string pswd;
+    Account* accptr;
+    for (const auto& w : words) {
+        if (arg == 1) {
+            id = atoi(w.c_str());
+            accptr = getAcntByID(id)
+                if (acctr == nullptr) {
+                    cerr << "Error " << getID() << ": Your transaction failed - account id " << id << " does not exist" << endl;
+                    return true;
+                }
+
+        }
+        else if (arg == 2) {
+            pswd = w;
+            if (!accptr->comparePassword(pswd)) {
+                cerr << "Error " << getID() << ": Your transaction failed - password for account id " << id << " is incorrect" << endl;
+                return true;
+            }
+        }
+        arg++;
+    }
+    res = accptr->getAmount();
+    cout << getID() << ": Account " << id << " balance is " << res << endl;
+    return false;
+}
+
+bool ATM::closeAcc(vector<string> words) {
+    int arg = 0;
+    int id, amount, res;
+    string pswd;
+    Account* accptr;
+    for (const auto& w : words) {
+        if (arg == 1) {
+            id = atoi(w.c_str());
+            accptr = getAcntByID(id)
+                if (acctr == nullptr) {
+                    cerr << "Error " << getID() << ": Your transaction failed - account id " << id << " does not exist" << endl;
+                    return true;
+                }
+
+        }
+        else if (arg == 2) {
+            pswd = w;
+            if (!accptr->comparePassword(pswd)) {
+                cerr << "Error " << getID() << ": Your transaction failed - password for account id " << id << " is incorrect" << endl;
+                return true;
+            }
+        }
+        arg++;
+    }
+    accounts.erase(accptr);
+    cout << getID() << ": Account " << id << " balance is " << res << endl;
     return false;
 }
 
