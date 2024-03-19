@@ -58,19 +58,21 @@ public:
 class Bank {
 	int BankBalance;
 	map<int, Account*> accounts;
-
+	int read_cnt;
+	pthread_mutex_t bankBalanceLock;
+	pthread_mutex_t	write_lock;
+	pthread_mutex_t read_lock;
 public:
 	Bank();
 	static void* bank_commissions(void* pbank);
+	static void* bank_print_Balance(void* pbank);
+	void print_stat(void);
 	int addAcc(int id, string pswd, int amount);
 	int removeAcc(int id, string pswd);
 	int deposit(int id, string pswd, int amount);
 	int withdraw(int id, string pswd, int amount);
 	int checkBalance(int id, string pswd);
 	int transer(int from_id, string pswd, int to_id, int amount, int* from_balance);
-	int read_cnt;
-	pthread_mutex_t	write_lock;
-	pthread_mutex_t read_lock;
 	void lock_write(void);
 	void unlock_write(void);
 

@@ -7,12 +7,14 @@
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% function of bank%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Bank::Bank() : BankBalance(0) {}
+Bank::Bank() : BankBalance(0) {
+	pthread_mutex_init(&bankBalanceLock, nullptr);
+}
 //%%%%%%%%%
-static void* Bank::bank_commissions(void* pbank){
+void* Bank::bank_commissions(void* pbank) {
 	Bank* bank = static_cast<Bank*>(pbank);
 	int acc_cmsn, cmsn_perc;
-	while(true){
+	while (true) {
 		cmsn_perc = rand() % 5 + 1;
 		bank->lock_read();
 		for (auto it = bank->accounts.begin(); it != bank->accounts.end(); ++it) {
@@ -23,19 +25,16 @@ static void* Bank::bank_commissions(void* pbank){
 		bank->unlock_read();
 		sleep(3);
 	}
-
-int Bank::bank(){
-	pthread_mutex_init(&bankBalanceLock, nullptr);
 }
 
-int Bank::bank_print_Balance(){//print stat to screen
+void* Bank::bank_print_Balance(void* pbank){//print stat to screen
+	Bank* bank = static_cast<Bank*>(pbank);
 	while(true){
-		bank.print_stat();
+		bank->print_stat();
 		sleep(0.5);
 	}
-	
 }
-void Bank::print_stat(){
+void Bank::print_stat(void){
 	pthread_mutex_lock(&bankBalanceLock); 
 	int current_bank_balance = BankBalance;
 
@@ -129,7 +128,7 @@ int Bank::withdraw(int id, string pswd, int amount) {
 }
 
 
-int Bank::checknce(int id, string pswd) {
+int Bank::checkBalance(int id, string pswd) {
 	int res;
 	lock_read();
 	auto it = accounts.find(id);
