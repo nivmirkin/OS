@@ -4,24 +4,25 @@
 using namespace std;
 ATM::ATM(int id) : id(id) {}
 
-bool ATM::loadFile(const string& filePath) {
-    fileHandle = fopen(filePath.c_str(), "r");
-    return fileHandle == nullptr;
+bool ATM::loadFile(const std::string& filePath) {
+    fileHandle.open(filePath.c_str());
+    return !fileHandle.is_open(); // Check if the file is not open
 }
 
-bool ATM::closeFile(void) {
-    if (fileHandle != nullptr) {
-        fclose(fileHandle);
-        fileHandle = nullptr;
+bool ATM::closeFile() {
+    if (fileHandle.is_open()) { // Check if the file is open
+        fileHandle.close();
+        return false;
     }
+    return true;
 }
 
-static void* ATM::ATMrun(void* patm) {
+void* ATM::ATMrun(void* patm) {
     string line;
     ATM* atm = static_cast<ATM*>(patm);
-    while (getline(fileStream, line)) {
+    while (getline(atm->fileHandle, line)) {
         // Process each line here
-        cout << "ATM " << ID << " reading line: " << line << std::endl;
+        cout << "ATM " << atm->getID() << " reading line: " << line << std::endl;
         if (!line.empty()) {
             istringstream iss(line);
             vector<string> words;
@@ -45,10 +46,11 @@ static void* ATM::ATMrun(void* patm) {
                 atm->closeAcc(words);
             }
             else if (line[0] == 'T') {
-                atm->transfer(T);
+                atm->transfer(words);
             }
         }
     }
+    return nullptr;
 }
 
 bool ATM::openAcc(vector<string> words) {
@@ -76,14 +78,15 @@ bool ATM::openAcc(vector<string> words) {
     else if (res == SUCCESS) {
         cout << getID() << ": New account id is " << id << " with password " << pswd << " and initial balance " << amount << endl;
         return false;
+    return true;
     }
+    return true;
 }
 
 bool ATM::deposit(vector<string> words){
     int arg = 0;
     int id, amount;
     string pswd;
-    Account* accptr;
     for (const auto& w : words) {
         if (arg == 1) {
             id = atoi(w.c_str());
@@ -98,19 +101,20 @@ bool ATM::deposit(vector<string> words){
     }
     int res = bank.deposit(id, pswd, amount);
     if (res == ACC_NOT_EXST) {
-       cerr << "Error " << getID() << ": Your transaction failed - account id " << id << " does not exist" << endl
+        cerr << "Error " << getID() << ": Your transaction failed - account id " << id << " does not exist" << endl;
        return true;
 
     }
     else if (res == WROND_PSWD) {
-        cerr << "Error " << getID() << ": Your transaction failed - password for account id " << id << " is incorrect" << endl
+        cerr << "Error " << getID() << ": Your transaction failed - password for account id " << id << " is incorrect" << endl;
         return true;
 
     }
     else if (res >= 0) {
-        cout << getID() << ": Account " << id << " new balance is " << res << " after " << amount << " $ was deposited" << 
+        cout << getID() << ": Account " << id << " new balance is " << res << " after " << amount << " $ was deposited" << endl;
         return false;
     }
+    return true;
 
 }
 
@@ -119,7 +123,6 @@ bool ATM::withdraw(vector<string> words) {
     int arg = 0;
     int id, amount,res;
     string pswd;
-    Account* accptr;
     for (const auto& w : words) {
         if (arg == 1) {
             id = atoi(w.c_str());
@@ -151,17 +154,17 @@ bool ATM::withdraw(vector<string> words) {
         cout << getID() << ": Account " << id << " new balance is " << res << " after " << amount << " $ was withdrew" << endl;
         return false;
     }
+    return true;
 
 }
 
 bool ATM::checkBalance(vector<string> words) {
     int arg = 0;
-    int id, amount, res;
+    int id, res;
     string pswd;
-    Account* accptr;
     for (const auto& w : words) {
         if (arg == 1) {
-            id = atoi(w.c_str()
+            id = atoi(w.c_str());
         }
         else if (arg == 2) {
             pswd = w;
@@ -181,13 +184,14 @@ bool ATM::checkBalance(vector<string> words) {
         cout << getID() << ": Account " << id << " balance is " << res << endl;
         return false;
     }
+    return true;
+
 }
 
 bool ATM::closeAcc(vector<string> words) {
     int arg = 0;
-    int id, amount, res;
+    int id, res;
     string pswd;
-    Account* accptr;
     for (const auto& w : words) {
         if (arg == 1) {
             id = atoi(w.c_str());
@@ -210,13 +214,14 @@ bool ATM::closeAcc(vector<string> words) {
         cout << getID() << ": Account " << id << " is now closed. Balance was " << res << endl;
         return false;
     }
+    return true;
+
 }
 
 bool ATM::transfer(vector<string> words) {
     int arg = 0;
     int from_id,to_id, amount, res;
     string pswd;
-    Account* accptr;
     for (const auto& w : words) {
         if (arg == 1) {
             from_id = atoi(w.c_str());
@@ -251,14 +256,15 @@ bool ATM::transfer(vector<string> words) {
         return true;
     }
     else if (res >= 0) {
-        cout << getID() << ": Transfer " << amount << :" from account " << from_id << " to account " << to_id << " new account balance is " << from_balance << " new target account balance is " << res << endl;
+        cout << getID() << ": Transfer " << amount << " from account " << from_id << " to account " << to_id << " new account balance is " << from_balance << " new target account balance is " << res << endl;
         return false;
     }
+    return true;
 }
 
 
 int ATM::getID() {
-    return this.id;
+    return this->id;
 }
 
 
@@ -270,9 +276,10 @@ bool isIDPresent(int id) {
 Account* getAcntByID(int id) {
     auto it = bank.accounts.find(id);
     if (it != bank.accounts.end()) {
-        return &(it->second); // Return pointer to Acnt object
+        return (it->second); // Return pointer to Acnt object
     }
     else {
         return nullptr; // ID not found in map
     }
+}
 

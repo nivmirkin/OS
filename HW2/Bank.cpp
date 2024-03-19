@@ -48,29 +48,7 @@ void Bank::print_stat(void){
 	   cout << "Account " << id << ": Balance – " << balance <<" $, Account Password – " << pW << endl;
 	}
 	 pthread_mutex_unlock(&bankBalanceLock);
-	 cout << "The Bank has " << currentBankBalance << " $" << endl;
-}
-
-int Bank::bank_commissions_thread(){
-	whlie(true){
-		int Commission_Percent = rand() % 5 + 1;
-		updating_Banknce(Commission_Percent);
-		sleep(3);
-	}
-	return 0;
-}
-//%%%%%%%%
-int Bank::updating_Banknce(int Commission_Percent ){
-	 for (auto it = accounts.begin(); it != accounts.end(); ++it) {
-		 if(it->second->getAmount()> 0) {
-			 int Commission_from_acc =(int) round((double)( Commission_Percent * it->get_amount) / 100) ;   
-			 it.nce -= Commission_from_acc;
-			 this.Banknce += Commission_from_acc;
-		 }
-		 
-	 }
-	 return 0;
-
+	 cout << "The Bank has " << current_bank_balance << " $" << endl;
 }
 
 int Bank::addAcc(int id, string pswd, int amount) {
@@ -299,14 +277,7 @@ int Account::getAmount(string * pW) {
 	unlock_read();
 	return res;
 }
-int Account::getAmount(string * pW) {
-	int res;
-	lock_read();
-	res = amount;
-	*pW = password ;
-	unlock_read();
-	return res;
-}
+
 
 //######################################### global ########################################
 pthread_mutex_t log_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -320,14 +291,14 @@ int main (int argc, char *argv[]) {
 		cerr << "Bank error: illegal arguments" << endl;
 	}
 	int logFile = open(LOG, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-	if(logFile){
+	if(logFile==-1){
 		perror("Bank error: open failed");
 		exit(1);
 	}
 	//creat N threads 
 	pthread_t* atm_threads = new pthread_t[Nthreads];
 	//creating a vec to store all the ATMs
-	vector <ATM> atm_vec;
+	vector <ATM*> atm_vec;
 	//creat bank thread for the commition and for the nce printing 
 	pthread_t bank_commissions_thread;
 	pthread_t bank_print_Balance;
@@ -350,7 +321,7 @@ int main (int argc, char *argv[]) {
 	//creating the printing the bank nce thread
 	if (pthread_create(&bank_print_Balance, nullptr, Bank::bank_print_Balance, nullptr)) {
 		 perror("Bank error: pthread_create failed");
-		 close(LOG);
+		 close(logFile);
 		 atm_vec.clear();
 		 delete[] atm_threads;
 		 pthread_mutex_destroy(&log_lock);
@@ -365,7 +336,7 @@ int main (int argc, char *argv[]) {
 				perror("Bank error: open failed");
 				exit(1);
 			}
-			atm_vec.push_back(atm);
+			atm_vec.push_back(&atm);
 	
 			// Create a thread for each ATM
 			if (pthread_create(atm_threads + i - 1, nullptr, ATM::ATMrun, ((void*)&atm))) {
@@ -373,10 +344,11 @@ int main (int argc, char *argv[]) {
 				atm_vec.clear();
 				delete[] atm_threads;
 				pthread_mutex_destroy(&log_lock);
-				close(LOG);
+				close(logFile);
 				exit(1);
 			}
 	}
+	cout << "here\n" << flush;
 	//***********************************************************************
 	// joining all the threads 
 	for (int i =1 ; i <= Nthreads; i++){

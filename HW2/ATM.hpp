@@ -13,7 +13,7 @@
 #include <list>
 #include <vector>
 #include <map>
-
+class Bank;
 extern Bank bank;
 
 using namespace std ;
@@ -24,7 +24,7 @@ using namespace std ;
 
 class ATM {
     int id;
-    FILE* fileHandle;
+    ifstream fileHandle;
 
   
 

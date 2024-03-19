@@ -16,7 +16,7 @@
 #include <algorithm>
 #include <mutex>
 #include <pthread.h>
-
+#include <map>
 #define SUCCESS 1
 #define FAIL 0
 #define WROND_PSWD -2
@@ -57,12 +57,12 @@ public:
 
 class Bank {
 	int BankBalance;
-	map<int, Account*> accounts;
 	int read_cnt;
-	pthread_mutex_t bankBalanceLock;
 	pthread_mutex_t	write_lock;
 	pthread_mutex_t read_lock;
 public:
+	pthread_mutex_t bankBalanceLock;
+	map<int, Account*> accounts;
 	Bank();
 	static void* bank_commissions(void* pbank);
 	static void* bank_print_Balance(void* pbank);
