@@ -62,6 +62,8 @@ class Bank {
 public:
 	Bank();
 	static void* bank_commissions(void* pbank);
+	static void* print_stat();
+	static void* bank_print_Balance();
 	int addAcc(int id, string pswd, int amount);
 	int removeAcc(int id, string pswd);
 	int deposit(int id, string pswd, int amount);
