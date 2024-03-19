@@ -81,7 +81,7 @@ int Bank::withdraw(int id, string pswd, int amount) {
 }
 
 
-int Bank::checknce(int id, string pswd) {
+int Bank::checkBalance(int id, string pswd) {
 	int res;
 	lock_read();
 	auto it = accounts.find(id);
