@@ -275,7 +275,7 @@ int main (int argc, char *argv[]) {
 	//creating the commition thread
 	if (pthread_create(&bank_commissions_thread, nullptr, Bank::bank_commissions_thread_init, nullptr)) {
 		 perror("Bank error: pthread_create failed");
-		 //close(logFile);
+		 close(LOG);
 		 atm_vec.clear();
 		 delete[] atm_threads;
 		 pthread_mutex_destroy(&log_lock);
@@ -284,7 +284,7 @@ int main (int argc, char *argv[]) {
 	//creating the printing the bank balance thread
 	if (pthread_create(&bank_print_BankBalance, nullptr, Bank::bank_print_BankBalance, nullptr)) {
 		 perror("Bank error: pthread_create failed");
-		 //close(logFile);
+		 close(LOG);
 		 atm_vec.clear();
 		 delete[] atm_threads;
 		 pthread_mutex_destroy(&log_lock);
@@ -307,7 +307,7 @@ int main (int argc, char *argv[]) {
 				atm_vec.clear();
 				delete[] atm_threads;
 				pthread_mutex_destroy(&log_lock);
-				//close(logFile);
+				close(LOG);
 				exit(1);
 			}
 	}
