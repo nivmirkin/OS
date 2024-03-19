@@ -7,25 +7,49 @@
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% function of bank%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//int Bank::bank(){
-//
-//}
-//%%%%%%%%%
+
+int Bank::bank(){
+	pthread_mutex_init(&bankBalanceLock, nullptr);
+}
+
+int Bank::bank_print_Balance(){//print stat to screen
+	while(true){
+		bank.print_stat();
+		sleep(0.5);
+	}
+	
+}
+void Bank::print_stat(){
+	pthread_mutex_lock(&bankBalanceLock); 
+	int current_bank_balance = BankBalance;
+
+    printf("\033[2J"); // clear screen
+    printf("\033[1;1H"); //move cursor
+    cout << "Current Bank Status" << endl ;
+    string pW ;
+	for (auto const& pair : accounts) {
+	   int id = pair.first;
+	   int balance = pair.second->getAmount(&pW );
+	   cout << "Account " << id << ": Balance – " << balance <<" $, Account Password – " << pW << endl;
+	}
+	 pthread_mutex_unlock(&bankBalanceLock);
+	 cout << "The Bank has " << currentBankBalance << " $" << endl;
+}
 int Bank::bank_commissions_thread(){
-	//whlie(){
+	//whlie(true){
 	//	int Commission_Percent = rand() % 5 + 1;
-	//	updating_BankBalance(Commission_Percent);
+	//	updating_Banknce(Commission_Percent);
 	//	sleep(3);
 	//}
 	return 0;
 }
 //%%%%%%%%
-int Bank::updating_BankBalance(int Commission_Percent ){
+int Bank::updating_Banknce(int Commission_Percent ){
 	 for (auto it = accounts.begin(); it != accounts.end(); ++it) {
 		 if(it->second->getAmount()> 0) {
 			// int Commission_from_acc =(int) round((double)( Commission_Percent * it->get_amount) / 100) ;    //TODO replace with function within account
-			// it.balance -= Commission_from_acc;
-			// this.BankBalance += Commission_from_acc;
+			// it.nce -= Commission_from_acc;
+			// this.Banknce += Commission_from_acc;
 		 }
 		 
 	 }
@@ -89,7 +113,7 @@ int Bank::withdraw(int id, string pswd, int amount) {
 }
 
 
-int Bank::checkBalance(int id, string pswd) {
+int Bank::checknce(int id, string pswd) {
 	int res;
 	lock_read();
 	auto it = accounts.find(id);
@@ -129,7 +153,7 @@ int Bank::removeAcc(int id,string pswd) {
 	return res;
 }
 
-int  Bank::transer(int from_id, string pswd, int to_id, int amount ,int* from_balance) {
+int  Bank::transer(int from_id, string pswd, int to_id, int amount ,int* from_nce) {
 	int res;
 	lock_read();
 	auto it = accounts.find(from_id);
@@ -150,7 +174,7 @@ int  Bank::transer(int from_id, string pswd, int to_id, int amount ,int* from_ba
 				res = INSFCNT_FUNDS;
 			}
 			else {
-				*from_balance = res;
+				*from_nce = res;
 				res = to_it->second->updateAmount(amount);
 			}
 		}
@@ -241,6 +265,14 @@ int Account::getAmount() {
 	unlock_read();
 	return res;
 }
+int Account::getAmount(string * pW) {
+	int res;
+	lock_read();
+	res = amount;
+	*pW = password ;
+	unlock_read();
+	return res;
+}
 
 //######################################### global ########################################
 pthread_mutex_t log_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -262,9 +294,9 @@ int main (int argc, char *argv[]) {
 	pthread_t* atm_threads = new pthread_t[Nthreads];
 	//creating a vec to store all the ATMs
 	vector <ATM> atm_vec;
-	//creat bank thread for the commition and for the balance printing 
+	//creat bank thread for the commition and for the nce printing 
 	pthread_t bank_commissions_thread;
-	pthread_t bank_print_BankBalance;
+	pthread_t bank_print_Balance;
 	
 	//creating a mutex 
 	if (pthread_mutex_init(&log_lock, nullptr) != 0) {
@@ -281,8 +313,8 @@ int main (int argc, char *argv[]) {
 		 pthread_mutex_destroy(&log_lock);
 		 exit(1);
 	 }
-	//creating the printing the bank balance thread
-	if (pthread_create(&bank_print_BankBalance, nullptr, Bank::bank_print_BankBalance, nullptr)) {
+	//creating the printing the bank nce thread
+	if (pthread_create(&bank_print_Balance, nullptr, Bank::bank_print_Balance, nullptr)) {
 		 perror("Bank error: pthread_create failed");
 		 close(LOG);
 		 atm_vec.clear();
@@ -324,7 +356,7 @@ int main (int argc, char *argv[]) {
 	}
 	
 	// Wait for bank print thread to finish
-	if (pthread_join(bank_print_BankBalance, nullptr) != 0) {
+	if (pthread_join(bank_print_Balance, nullptr) != 0) {
 		perror("Bank error: pthread_join failed");
 	
 	}
