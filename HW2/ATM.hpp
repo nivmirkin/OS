@@ -1,8 +1,8 @@
 
 #ifndef ATM_HPP
 #define ATM_HPP
-
-#include <unistd.h>
+#include "bank.hpp"
+#include <unistd.h> 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -11,7 +11,9 @@
 #include <pthread.h>
 #include <fstream>
 #include <list>
+#include <vector>
 #include <map>
+
 extern Bank bank;
 
 using namespace std ;
@@ -24,12 +26,16 @@ class ATM {
     int id;
     FILE* fileHandle;
 
-    bool loadFile(const string& filePath);
+  
 
-    void ATMrun();
+public:
+    ATM(int id);
+    bool loadFile(const string& filePath);
+    bool closeFile(void);
+    static void* ATMrun(void* patm);
 
     bool openAcc(vector<string> words);
-    
+
     bool deposit(vector<string> words);
 
     bool withdraw(vector<string> words);
@@ -38,11 +44,10 @@ class ATM {
 
     bool closeAcc(vector<string> words);
 
+    bool transfer(vector<string> words);
+
 
     int getID();
-
-public:
-    ATM(int id);
 };
 
 

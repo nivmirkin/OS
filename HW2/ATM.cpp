@@ -1,5 +1,4 @@
 
-#include "Bank.hpp"
 #include "ATM.hpp"
 #include <cstdlib>        
 using namespace std;
@@ -10,8 +9,16 @@ bool ATM::loadFile(const string& filePath) {
     return fileHandle == nullptr;
 }
 
-void ATM::ATMrun() {
+bool ATM::closeFile(void) {
+    if (fileHandle != nullptr) {
+        fclose(fileHandle);
+        fileHandle = nullptr;
+    }
+}
+
+static void* ATM::ATMrun(void* patm) {
     string line;
+    ATM* atm = static_cast<ATM*>(patm);
     while (getline(fileStream, line)) {
         // Process each line here
         cout << "ATM " << ID << " reading line: " << line << std::endl;
@@ -22,24 +29,23 @@ void ATM::ATMrun() {
             while (iss >> word) {
                 words.push_back(word);
             }
-
             if (line[0] == 'O') {
-                openAcc(words);
+                atm->openAcc(words);
             }
             else if (line[0] == 'D') {
-                deposit(words);
+                atm->deposit(words);
             }
             else if (line[0] == 'W') {
-                withdraw(words);
+                atm->withdraw(words);
             }
             else if (line[0] == 'B') {
-                checkBalance(words);
+                atm->checkBalance(words);
             }
             else if (line[0] == 'Q') {
-
+                atm->closeAcc(words);
             }
             else if (line[0] == 'T') {
-
+                atm->transfer(T);
             }
         }
     }
@@ -174,7 +180,7 @@ bool ATM::checkBalance(vector<string> words) {
     else if (res >= 0) {
         cout << getID() << ": Account " << id << " balance is " << res << endl;
         return false;
-    
+    }
 }
 
 bool ATM::closeAcc(vector<string> words) {
@@ -194,15 +200,62 @@ bool ATM::closeAcc(vector<string> words) {
     res = back.removeAcc(id, pswd);
     if (res == ACC_NOT_EXST) {
         cerr << "Error " << getID() << ": Your transaction failed - account id " << id << " does not exist" << endl;
+        return true;
     }
     else if (res == WROND_PSWD){
         cerr << "Error " << getID() << ": Your transaction failed - password for account id " << id << " is incorrect" << endl;
+        return true;
     }
     else if (res > 0) {
         cout << getID() << ": Account " << id << " is now closed. Balance was " << res << endl;
         return false;
     }
 }
+
+bool ATM::transfer(vector<string> words) {
+    int arg = 0;
+    int from_id,to_id, amount, res;
+    string pswd;
+    Account* accptr;
+    for (const auto& w : words) {
+        if (arg == 1) {
+            from_id = atoi(w.c_str());
+        }
+        else if (arg == 2) {
+            pswd = w;
+        }
+        else if (arg == 3) {
+            to_id = atoi(w.c_str());
+        }
+        else if (arg == 4) {
+            amount = atoi(w.c_str());
+        }
+        arg++;
+    }
+    int from_balance;
+    res = back.transer(from_id, pswd, to_id,amount, &from_balance);
+    if (res == ACC_NOT_EXST) {
+        cerr << "Error " << getID() << ": Your transaction failed - account id " << from_id << " does not exist" << endl;
+        return true;
+    }
+    else if (res == TO_ACC_NOT_EXST) {
+        cerr << "Error " << getID() << ": Your transaction failed - account id " << to_id << " does not exist" << endl;
+        return true;
+    }
+    else if (res == WROND_PSWD) {
+        cerr << "Error " << getID() << ": Your transaction failed - password for account id " << from_id << " is incorrect" << endl;
+        return true;
+    }
+    else if (res == INSFCNT_FUNDS) {
+        cerr << "Error " << getID() << ": Your transaction failed - account id " << from_id << " balance is lower than amount " << amount << endl;
+        return true;
+    }
+    else if (res >= 0) {
+        cout << getID() << ": Transfer " << amount << :" from account " << from_id << " to account " << to_id << " new account balance is " << from_balance << " new target account balance is " << res << endl;
+        return false;
+    }
+}
+
 
 int ATM::getID() {
     return this.id;

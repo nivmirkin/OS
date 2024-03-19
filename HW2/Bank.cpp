@@ -7,27 +7,30 @@
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% function of bank%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-int Bank::bank(){
-	
-}
+//int Bank::bank(){
+//
+//}
 //%%%%%%%%%
 int Bank::bank_commissions_thread(){
-	whlie(){
-		int Commission_Percent = rand() % 5 + 1;
-		updating_BankBalance(Commission_Percent);
-		sleep(3);
-	}
+	//whlie(){
+	//	int Commission_Percent = rand() % 5 + 1;
+	//	updating_BankBalance(Commission_Percent);
+	//	sleep(3);
+	//}
+	return 0;
 }
 //%%%%%%%%
 int Bank::updating_BankBalance(int Commission_Percent ){
 	 for (auto it = accounts.begin(); it != accounts.end(); ++it) {
-		 if(it->get_amount > 0){
-			 int Commission_from_acc =(int) round((double)( Commission_Percent * it->get_amount) / 100) ;
-			 it.balance -= Commission_from_acc;
-			 this.BankBalance += Commission_from_acc;
+		 if(it->second->getAmount()> 0) {
+			// int Commission_from_acc =(int) round((double)( Commission_Percent * it->get_amount) / 100) ;    //TODO replace with function within account
+			// it.balance -= Commission_from_acc;
+			// this.BankBalance += Commission_from_acc;
 		 }
 		 
 	 }
+	 return 0;
+
 }
 
 int Bank::addAcc(int id, string pswd, int amount) {
@@ -37,8 +40,8 @@ int Bank::addAcc(int id, string pswd, int amount) {
 		res = ACC_EXST;
 	}
 	else {
-		Account acnt(id, pswd, amount) :
-		accounts.emplace(id, acnt);
+		Account acnt(id, pswd, amount);
+		accounts.emplace(id, &acnt);
 	}
 	unlock_write();
 	return res;
@@ -47,7 +50,7 @@ int Bank::addAcc(int id, string pswd, int amount) {
 int Bank::deposit(int id, string pswd, int amount) {
 	int res;
 	lock_read();
-	auto it = accounts.find(accountId);
+	auto it = accounts.find(id);
 	if (it == accounts.end()) {
 		res = ACC_NOT_EXST;
 	}
@@ -66,7 +69,7 @@ int Bank::deposit(int id, string pswd, int amount) {
 int Bank::withdraw(int id, string pswd, int amount) {
 	int res;
 	lock_read();
-	auto it = accounts.find(accountId);
+	auto it = accounts.find(id);
 	if (it == accounts.end()) {
 		res = ACC_NOT_EXST;
 	}
@@ -89,7 +92,7 @@ int Bank::withdraw(int id, string pswd, int amount) {
 int Bank::checkBalance(int id, string pswd) {
 	int res;
 	lock_read();
-	auto it = accounts.find(accountId);
+	auto it = accounts.find(id);
 	if (it == accounts.end()) {
 		res = ACC_NOT_EXST;
 	}
@@ -98,7 +101,7 @@ int Bank::checkBalance(int id, string pswd) {
 			res = WROND_PSWD;
 		}
 		else {
-			res = it->second->getAmount()
+			res = it->second->getAmount();
 		}
 	}
 	unlock_read();
@@ -109,7 +112,7 @@ int Bank::checkBalance(int id, string pswd) {
 int Bank::removeAcc(int id,string pswd) {
 	int res;
 	lock_write();
-	auto it = accounts.find(accountId);
+	auto it = accounts.find(id);
 	if (it == accounts.end()) {
 		res = ACC_NOT_EXST;
 	}
@@ -125,6 +128,37 @@ int Bank::removeAcc(int id,string pswd) {
 	unlock_write();
 	return res;
 }
+
+int  Bank::transer(int from_id, string pswd, int to_id, int amount ,int* from_balance) {
+	int res;
+	lock_read();
+	auto it = accounts.find(from_id);
+	auto to_it = accounts.find(to_id);
+	if (to_it == accounts.end()) {
+		res = TO_ACC_NOT_EXST;
+	}
+	else if (it == accounts.end()) {
+		res = ACC_NOT_EXST;
+	}
+	else {
+		if (!it->second->comparePassword(pswd)) {
+			res = WROND_PSWD;
+		}
+		else {
+			res = it->second->updateAmount(-amount);
+			if (res < 0) {
+				res = INSFCNT_FUNDS;
+			}
+			else {
+				*from_balance = res;
+				res = to_it->second->updateAmount(amount);
+			}
+		}
+	}
+	unlock_read();
+	return res;
+}
+
 
 void Bank::lock_write(void) {
 	pthread_mutex_lock(&write_lock);
@@ -213,18 +247,19 @@ pthread_mutex_t log_lock = PTHREAD_MUTEX_INITIALIZER;
 Bank bank;
 //***************************************** main *******************************************
 int main (int argc, char *argv[]) {
-	int N = argc -1 ;
 	
+	int Nthreads = argc -1 ;
 	//check if there is no parameters given print error	
 	if(argc == 1){
 		cerr << "Bank error: illegal arguments" << endl;
 	}
-	if(open(LOG,O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)){
+	int fd = open(LOG, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+	if(fd){
 		perror("Bank error: open failed");
 		exit(1);
 	}
 	//creat N threads 
-	pthread_t* atm_threads = new pthread_t[N];
+	pthread_t* atm_threads = new pthread_t[Nthreads];
 	//creating a vec to store all the ATMs
 	vector <ATM> atm_vec;
 	//creat bank thread for the commition and for the balance printing 
@@ -240,7 +275,7 @@ int main (int argc, char *argv[]) {
 	//creating the commition thread
 	if (pthread_create(&bank_commissions_thread, nullptr, Bank::bank_commissions_thread_init, nullptr)) {
 		 perror("Bank error: pthread_create failed");
-		 close(logFile);
+		 //close(logFile);
 		 atm_vec.clear();
 		 delete[] atm_threads;
 		 pthread_mutex_destroy(&log_lock);
@@ -249,7 +284,7 @@ int main (int argc, char *argv[]) {
 	//creating the printing the bank balance thread
 	if (pthread_create(&bank_print_BankBalance, nullptr, Bank::bank_print_BankBalance, nullptr)) {
 		 perror("Bank error: pthread_create failed");
-		 close(logFile);
+		 //close(logFile);
 		 atm_vec.clear();
 		 delete[] atm_threads;
 		 pthread_mutex_destroy(&log_lock);
@@ -257,7 +292,7 @@ int main (int argc, char *argv[]) {
 	 }
 	
 	//putint the files in to the atm class with the ID and creating N threads for ATMs
-	for (int i =1 ; i=< N ; i++){
+	for (int i =1 ; i <= Nthreads; i++){
 			ATM atm(i);
 			if( atm.loadFile(argv[i]))
 			{
@@ -267,18 +302,18 @@ int main (int argc, char *argv[]) {
 			atm_vec.push_back(atm);
 	
 			// Create a thread for each ATM
-			if (pthread_create(atm_threads + i - 1, nullptr, atm_thread_init, &atm_vec[i - 1])) {
+			if (pthread_create(atm_threads + i - 1, nullptr, ATM::ATMrun, ((void*)&atm))) {
 				perror("Bank error: pthread_create failed");
 				atm_vec.clear();
 				delete[] atm_threads;
 				pthread_mutex_destroy(&log_lock);
-				close(logFile);
+				//close(logFile);
 				exit(1);
 			}
 	}
 	//***********************************************************************
 	// joining all the threads 
-	for (int i =1 ; i=< N ; i++){
+	for (int i =1 ; i <= Nthreads; i++){
 		if(pthread_join(atm_threads[i], nullptr) != 0 ){
 			perror("Bank error: pthread_join failed");
 		}
@@ -298,12 +333,12 @@ int main (int argc, char *argv[]) {
 	delete[] atm_threads;
 	pthread_mutex_destroy(&log_lock);
 	
-	if(close(LOG) == -1){
+	if(close(fd) == -1){
 			perror("Bank error: close failed");
 			exit(1);
 	}
 	
-	return SUCCESS
+	return SUCCESS;
         
 }
 
