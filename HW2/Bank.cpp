@@ -304,13 +304,13 @@ int main (int argc, char *argv[]) {
 	pthread_t bank_print_Balance;
 	
 	//creating a mutex 
-	if (pthread_mutex_init(&log_lock, nullptr) != 0) {
+	if (pthread_mutex_init(&log_lock, NULL) != 0) {
 		perror("Bank error: pthread_mutex_init failed");
 		exit(1);
 	}
 	//*********************************creating threads***********************************
 	//creating the commition thread
-	if (pthread_create(&bank_commissions_thread, nullptr, Bank::bank_commissions, ((void*)&bank))) {
+	if (pthread_create(&bank_commissions_thread, NULL, Bank::bank_commissions, ((void*)&bank))) {
 		 perror("Bank error: pthread_create failed");
 		 close(logFile);
 		 atm_vec.clear();
@@ -319,7 +319,7 @@ int main (int argc, char *argv[]) {
 		 exit(1);
 	 }
 	//creating the printing the bank nce thread
-	if (pthread_create(&bank_print_Balance, nullptr, Bank::bank_print_Balance, nullptr)) {
+	if (pthread_create(&bank_print_Balance, NULL, Bank::bank_print_Balance, ((void*)&bank))) {
 		 perror("Bank error: pthread_create failed");
 		 close(logFile);
 		 atm_vec.clear();
@@ -329,17 +329,21 @@ int main (int argc, char *argv[]) {
 	 }
 	
 	//putint the files in to the atm class with the ID and creating N threads for ATMs
+	cout << Nthreads << endl;;
 	for (int i =1 ; i <= Nthreads; i++){
-			ATM atm(i);
-			if( atm.loadFile(argv[i]))
-			{
-				perror("Bank error: open failed");
-				exit(1);
-			}
+
+		ATM atm(i, argv[i]);
+
+			//if( atm.loadFile(argv[i]))
+			//{
+			//	perror("Bank error: open failed");
+			//	exit(1);
+			//}
+
 			atm_vec.push_back(&atm);
-	
+
 			// Create a thread for each ATM
-			if (pthread_create(atm_threads + i - 1, nullptr, ATM::ATMrun, ((void*)&atm))) {
+			if (pthread_create(atm_threads + i - 1, NULL, ATM::ATMrun, ((void*)&atm))) {
 				perror("Bank error: pthread_create failed");
 				atm_vec.clear();
 				delete[] atm_threads;
@@ -348,21 +352,22 @@ int main (int argc, char *argv[]) {
 				exit(1);
 			}
 	}
-	cout << "here\n" << flush;
 	//***********************************************************************
 	// joining all the threads 
 	for (int i =1 ; i <= Nthreads; i++){
-		if(pthread_join(atm_threads[i], nullptr) != 0 ){
+		if(pthread_join(atm_threads[i-1], NULL) ){
 			perror("Bank error: pthread_join failed");
 		}
 	}
-	if (pthread_join(bank_commissions_thread, nullptr) != 0) {
+	cout << "test\n" << flush;
+
+	if (pthread_join(bank_commissions_thread, NULL)) {
 		perror("Bank error: pthread_join failed");
 	
 	}
 	
 	// Wait for bank print thread to finish
-	if (pthread_join(bank_print_Balance, nullptr) != 0) {
+	if (pthread_join(bank_print_Balance, NULL)) {
 		perror("Bank error: pthread_join failed");
 	
 	}

@@ -2,13 +2,23 @@
 #include "ATM.hpp"
 #include <cstdlib>        
 using namespace std;
-ATM::ATM(int id) : id(id) {}
+ATM::ATM(int id, string filePath) : id(id), filepath(filePath) {}
+    //fileHandle.open(filePath);
+    //if (!fileHandle.is_open()) {
+    //    std::cerr << "Bank error: failed to open file" << std::endl;
+    //    // You might want to handle the error here, like throwing an exception
+    //}
+    //else {
+    //    std::cout << filePath << " opened successfully" << std::endl;
+    //}
 
-bool ATM::loadFile(const std::string& filePath) {
-    fileHandle.open(filePath.c_str());
-    return !fileHandle.is_open(); // Check if the file is not open
-}
-
+/*bool ATM::loadFile(const char* filePath) {
+    const char* file = espacos.c_str();
+    cout << path << "\there\n" << flush;
+    fileHandle.open(path);
+    return true; // Check if the file is not open
+}*/
+/*
 bool ATM::closeFile() {
     if (fileHandle.is_open()) { // Check if the file is open
         fileHandle.close();
@@ -16,11 +26,16 @@ bool ATM::closeFile() {
     }
     return true;
 }
-
+*/
 void* ATM::ATMrun(void* patm) {
+    cout << "\there\n" << flush;
     string line;
     ATM* atm = static_cast<ATM*>(patm);
-    while (getline(atm->fileHandle, line)) {
+    cout << atm->getID() << flush;
+    ifstream filehandle(atm->filepath);
+
+    while (getline(filehandle, line)) {
+        usleep(100000);
         // Process each line here
         cout << "ATM " << atm->getID() << " reading line: " << line << std::endl;
         if (!line.empty()) {

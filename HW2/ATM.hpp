@@ -24,13 +24,11 @@ using namespace std ;
 
 class ATM {
     int id;
-    ifstream fileHandle;
-
-  
+    string filepath;
 
 public:
-    ATM(int id);
-    bool loadFile(const string& filePath);
+    ATM(int id, string filePath);
+    bool loadFile(const char* filePath);
     bool closeFile(void);
     static void* ATMrun(void* patm);
 
