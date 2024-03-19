@@ -23,6 +23,54 @@ static void* Bank::bank_commissions(void* pbank){
 		bank->unlock_read();
 		sleep(3);
 	}
+
+int Bank::bank(){
+	pthread_mutex_init(&bankBalanceLock, nullptr);
+}
+
+int Bank::bank_print_Balance(){//print stat to screen
+	while(true){
+		bank.print_stat();
+		sleep(0.5);
+	}
+	
+}
+void Bank::print_stat(){
+	pthread_mutex_lock(&bankBalanceLock); 
+	int current_bank_balance = BankBalance;
+
+    printf("\033[2J"); // clear screen
+    printf("\033[1;1H"); //move cursor
+    cout << "Current Bank Status" << endl ;
+    string pW ;
+	for (auto const& pair : accounts) {
+	   int id = pair.first;
+	   int balance = pair.second->getAmount(&pW );
+	   cout << "Account " << id << ": Balance – " << balance <<" $, Account Password – " << pW << endl;
+	}
+	 pthread_mutex_unlock(&bankBalanceLock);
+	 cout << "The Bank has " << currentBankBalance << " $" << endl;
+}
+int Bank::bank_commissions_thread(){
+	//whlie(true){
+	//	int Commission_Percent = rand() % 5 + 1;
+	//	updating_Banknce(Commission_Percent);
+	//	sleep(3);
+	//}
+	return 0;
+}
+//%%%%%%%%
+int Bank::updating_Banknce(int Commission_Percent ){
+	 for (auto it = accounts.begin(); it != accounts.end(); ++it) {
+		 if(it->second->getAmount()> 0) {
+			// int Commission_from_acc =(int) round((double)( Commission_Percent * it->get_amount) / 100) ;    //TODO replace with function within account
+			// it.nce -= Commission_from_acc;
+			// this.Banknce += Commission_from_acc;
+		 }
+		 
+	 }
+	 return 0;
+
 }
 
 int Bank::addAcc(int id, string pswd, int amount) {
@@ -81,7 +129,7 @@ int Bank::withdraw(int id, string pswd, int amount) {
 }
 
 
-int Bank::checkBalance(int id, string pswd) {
+int Bank::checknce(int id, string pswd) {
 	int res;
 	lock_read();
 	auto it = accounts.find(id);
@@ -240,6 +288,14 @@ int Account::getAmount() {
 	int res;
 	lock_read();
 	res = amount;
+	unlock_read();
+	return res;
+}
+int Account::getAmount(string * pW) {
+	int res;
+	lock_read();
+	res = amount;
+	*pW = password ;
 	unlock_read();
 	return res;
 }
