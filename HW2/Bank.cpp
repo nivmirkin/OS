@@ -7,7 +7,9 @@
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% function of bank%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Bank::Bank() : BankBalance(0) {}
+Bank::Bank() : BankBalance(0) {
+	pthread_mutex_init(&bankBalanceLock, nullptr);
+}
 //%%%%%%%%%
 static void* Bank::bank_commissions(void* pbank){
 	Bank* bank = static_cast<Bank*>(pbank);
@@ -23,19 +25,19 @@ static void* Bank::bank_commissions(void* pbank){
 		bank->unlock_read();
 		sleep(3);
 	}
+//Bank::bank(){
+//	pthread_mutex_init(&bankBalanceLock, nullptr);
+//}
 
-int Bank::bank(){
-	pthread_mutex_init(&bankBalanceLock, nullptr);
-}
-
-int Bank::bank_print_Balance(){//print stat to screen
+static void* Bank::bank_print_Balance(){//print stat to screen
 	while(true){
 		bank.print_stat();
 		sleep(0.5);
 	}
 	
 }
-void Bank::print_stat(){
+
+static void* Bank::print_stat(){
 	pthread_mutex_lock(&bankBalanceLock); 
 	int current_bank_balance = BankBalance;
 
@@ -51,21 +53,22 @@ void Bank::print_stat(){
 	 pthread_mutex_unlock(&bankBalanceLock);
 	 cout << "The Bank has " << currentBankBalance << " $" << endl;
 }
+
 int Bank::bank_commissions_thread(){
-	//whlie(true){
-	//	int Commission_Percent = rand() % 5 + 1;
-	//	updating_Banknce(Commission_Percent);
-	//	sleep(3);
-	//}
+	whlie(true){
+		int Commission_Percent = rand() % 5 + 1;
+		updating_Banknce(Commission_Percent);
+		sleep(3);
+	}
 	return 0;
 }
 //%%%%%%%%
 int Bank::updating_Banknce(int Commission_Percent ){
 	 for (auto it = accounts.begin(); it != accounts.end(); ++it) {
 		 if(it->second->getAmount()> 0) {
-			// int Commission_from_acc =(int) round((double)( Commission_Percent * it->get_amount) / 100) ;    //TODO replace with function within account
-			// it.nce -= Commission_from_acc;
-			// this.Banknce += Commission_from_acc;
+			 int Commission_from_acc =(int) round((double)( Commission_Percent * it->get_amount) / 100) ;   
+			 it.nce -= Commission_from_acc;
+			 this.Banknce += Commission_from_acc;
 		 }
 		 
 	 }

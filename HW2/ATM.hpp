@@ -1,7 +1,7 @@
 
 #ifndef ATM_HPP
 #define ATM_HPP
-#include "bank.hpp"
+#include "Bank.hpp"
 #include <unistd.h> 
 #include <stdio.h>
 #include <stdlib.h>
