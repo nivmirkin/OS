@@ -197,7 +197,7 @@ bool ATM::closeAcc(vector<string> words) {
         }
         arg++;
     }
-    res = back.removeAcc(id, pswd);
+    res = bank.removeAcc(id, pswd);
     if (res == ACC_NOT_EXST) {
         cerr << "Error " << getID() << ": Your transaction failed - account id " << id << " does not exist" << endl;
         return true;
@@ -233,7 +233,7 @@ bool ATM::transfer(vector<string> words) {
         arg++;
     }
     int from_balance;
-    res = back.transer(from_id, pswd, to_id,amount, &from_balance);
+    res = bank.transer(from_id, pswd, to_id,amount, &from_balance);
     if (res == ACC_NOT_EXST) {
         cerr << "Error " << getID() << ": Your transaction failed - account id " << from_id << " does not exist" << endl;
         return true;

@@ -7,54 +7,22 @@
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% function of bank%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-int Bank::bank(){
-	pthread_mutex_init(&bankBalanceLock, nullptr);
-}
-
-int Bank::bank_print_Balance(){//print stat to screen
+Bank::Bank() : BankBalance(0) {}
+//%%%%%%%%%
+static void* Bank::bank_commissions(void* pbank){
+	Bank* bank = static_cast<Bank*>(pbank);
+	int acc_cmsn, cmsn_perc;
 	while(true){
-		bank.print_stat();
-		sleep(0.5);
+		cmsn_perc = rand() % 5 + 1;
+		bank->lock_read();
+		for (auto it = bank->accounts.begin(); it != bank->accounts.end(); ++it) {
+			acc_cmsn = it->second->cmsnWithdraw(cmsn_perc);
+			bank->BankBalance += acc_cmsn;
+			cout << "Bank: commissions of " << cmsn_perc << " % were charged, the bank gained " << acc_cmsn << " $ from account " << it->first << endl;
+		}
+		bank->unlock_read();
+		sleep(3);
 	}
-	
-}
-void Bank::print_stat(){
-	pthread_mutex_lock(&bankBalanceLock); 
-	int current_bank_balance = BankBalance;
-
-    printf("\033[2J"); // clear screen
-    printf("\033[1;1H"); //move cursor
-    cout << "Current Bank Status" << endl ;
-    string pW ;
-	for (auto const& pair : accounts) {
-	   int id = pair.first;
-	   int balance = pair.second->getAmount(&pW );
-	   cout << "Account " << id << ": Balance – " << balance <<" $, Account Password – " << pW << endl;
-	}
-	 pthread_mutex_unlock(&bankBalanceLock);
-	 cout << "The Bank has " << currentBankBalance << " $" << endl;
-}
-int Bank::bank_commissions_thread(){
-	//whlie(true){
-	//	int Commission_Percent = rand() % 5 + 1;
-	//	updating_Banknce(Commission_Percent);
-	//	sleep(3);
-	//}
-	return 0;
-}
-//%%%%%%%%
-int Bank::updating_Banknce(int Commission_Percent ){
-	 for (auto it = accounts.begin(); it != accounts.end(); ++it) {
-		 if(it->second->getAmount()> 0) {
-			// int Commission_from_acc =(int) round((double)( Commission_Percent * it->get_amount) / 100) ;    //TODO replace with function within account
-			// it.nce -= Commission_from_acc;
-			// this.Banknce += Commission_from_acc;
-		 }
-		 
-	 }
-	 return 0;
-
 }
 
 int Bank::addAcc(int id, string pswd, int amount) {
@@ -258,6 +226,16 @@ int Account::updateAmount(int addedAmount) {
 	return res;
 
 }
+int Account::cmsnWithdraw(int per) {
+	lock_write();
+	int res;
+
+	res = (int)(round(((double)amount*per)/100.0));
+	amount -= res;
+	unlock_write();
+	return res;
+
+}
 int Account::getAmount() {
 	int res;
 	lock_read();
@@ -285,8 +263,8 @@ int main (int argc, char *argv[]) {
 	if(argc == 1){
 		cerr << "Bank error: illegal arguments" << endl;
 	}
-	int fd = open(LOG, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-	if(fd){
+	int logFile = open(LOG, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+	if(logFile){
 		perror("Bank error: open failed");
 		exit(1);
 	}
@@ -305,9 +283,9 @@ int main (int argc, char *argv[]) {
 	}
 	//*********************************creating threads***********************************
 	//creating the commition thread
-	if (pthread_create(&bank_commissions_thread, nullptr, Bank::bank_commissions_thread_init, nullptr)) {
+	if (pthread_create(&bank_commissions_thread, nullptr, Bank::bank_commissions, ((void*)&bank))) {
 		 perror("Bank error: pthread_create failed");
-		 close(LOG);
+		 close(logFile);
 		 atm_vec.clear();
 		 delete[] atm_threads;
 		 pthread_mutex_destroy(&log_lock);
@@ -365,7 +343,7 @@ int main (int argc, char *argv[]) {
 	delete[] atm_threads;
 	pthread_mutex_destroy(&log_lock);
 	
-	if(close(fd) == -1){
+	if(close(logFile) == -1){
 			perror("Bank error: close failed");
 			exit(1);
 	}

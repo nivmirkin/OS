@@ -48,7 +48,10 @@ public:
 	bool comparePassword(string pwd);
 
 	int updateAmount(int addedAmount);
+	int cmsnWithdraw(int per);
 	int getAmount();
+	int getAmount(string* pW);
+
 };
 
 
@@ -57,9 +60,8 @@ class Bank {
 	map<int, Account*> accounts;
 
 public:
-	int updating_BankBalance(int Commission_Percent);
-	int bank_commissions_thread(void);
-
+	Bank();
+	static void* bank_commissions(void* pbank);
 	int addAcc(int id, string pswd, int amount);
 	int removeAcc(int id, string pswd);
 	int deposit(int id, string pswd, int amount);
