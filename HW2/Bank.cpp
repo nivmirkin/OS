@@ -18,18 +18,18 @@ Bank::Bank() : BankBalance(0) {
 void* Bank::bank_commissions(void* pbank) {
 	Bank* bank = static_cast<Bank*>(pbank);
 	int acc_cmsn, cmsn_perc;
-    ostringstream buff;
 	while (true) {
+		sleep(3);
+		ostringstream buff;
 		cmsn_perc = rand() % 5 + 1;
 		bank->lock_read();
 		for (auto it = bank->accounts.begin(); it != bank->accounts.end(); ++it) {
 			acc_cmsn = it->second->cmsnWithdraw(cmsn_perc);
 			bank->BankBalance += acc_cmsn;
 			buff << "Bank: commissions of " << cmsn_perc << " % were charged, the bank gained " << acc_cmsn << " $ from account " << it->first << endl;
-			bank->writeLog(&buff);
 		}
+		bank->writeLog(&buff);
 		bank->unlock_read();
-		sleep(3);
 	}
 }
 
