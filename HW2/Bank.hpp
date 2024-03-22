@@ -32,8 +32,8 @@ class Account {
 	string password;
 	int amount;
 	int read_cnt;
-	pthread_mutex_t write_lock;
-	pthread_mutex_t read_lock;
+	pthread_mutex_t acc_write_lock;
+	pthread_mutex_t acc_read_lock;
 
 public:
 	Account(int id, string pwd, int amt);

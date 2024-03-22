@@ -31,13 +31,13 @@ void* Bank::bank_print_Balance(void* pbank){//print stat to screen
 	Bank* bank = static_cast<Bank*>(pbank);
 	while(true){
 		bank->print_stat();
-		sleep(0.5);
+        usleep(500000);
 	}
 }
 void Bank::print_stat(void){
 	pthread_mutex_lock(&bankBalanceLock); 
 	int current_bank_balance = BankBalance;
-
+	lock_read();
     printf("\033[2J"); // clear screen
     printf("\033[1;1H"); //move cursor
     cout << "Current Bank Status" << endl ;
@@ -47,19 +47,22 @@ void Bank::print_stat(void){
 	   int balance = pair.second->getAmount(&pW );
 	   cout << "Account " << id << ": Balance – " << balance <<" $, Account Password – " << pW << endl;
 	}
+	unlock_read();
 	 pthread_mutex_unlock(&bankBalanceLock);
 	 cout << "The Bank has " << current_bank_balance << " $" << endl;
 }
 
 int Bank::addAcc(int id, string pswd, int amount) {
 	int res = SUCCESS;
+	Account* acnt;
 	lock_write();
+	sleep(1);
 	if (accounts.find(id) != accounts.end()) {
 		res = ACC_EXST;
 	}
 	else {
-		Account acnt(id, pswd, amount);
-		accounts.emplace(id, &acnt);
+		acnt = new Account(id, pswd, amount);
+		accounts.emplace(id, acnt);
 	}
 	unlock_write();
 	return res;
@@ -68,6 +71,7 @@ int Bank::addAcc(int id, string pswd, int amount) {
 int Bank::deposit(int id, string pswd, int amount) {
 	int res;
 	lock_read();
+	sleep(1);
 	auto it = accounts.find(id);
 	if (it == accounts.end()) {
 		res = ACC_NOT_EXST;
@@ -87,6 +91,7 @@ int Bank::deposit(int id, string pswd, int amount) {
 int Bank::withdraw(int id, string pswd, int amount) {
 	int res;
 	lock_read();
+	sleep(1);
 	auto it = accounts.find(id);
 	if (it == accounts.end()) {
 		res = ACC_NOT_EXST;
@@ -110,6 +115,7 @@ int Bank::withdraw(int id, string pswd, int amount) {
 int Bank::checkBalance(int id, string pswd) {
 	int res;
 	lock_read();
+	sleep(1);
 	auto it = accounts.find(id);
 	if (it == accounts.end()) {
 		res = ACC_NOT_EXST;
@@ -130,6 +136,7 @@ int Bank::checkBalance(int id, string pswd) {
 int Bank::removeAcc(int id,string pswd) {
 	int res;
 	lock_write();
+	sleep(1);
 	auto it = accounts.find(id);
 	if (it == accounts.end()) {
 		res = ACC_NOT_EXST;
@@ -150,6 +157,7 @@ int Bank::removeAcc(int id,string pswd) {
 int  Bank::transer(int from_id, string pswd, int to_id, int amount ,int* from_nce) {
 	int res;
 	lock_read();
+	sleep(1);
 	auto it = accounts.find(from_id);
 	auto to_it = accounts.find(to_id);
 	if (to_it == accounts.end()) {
@@ -180,9 +188,13 @@ int  Bank::transer(int from_id, string pswd, int to_id, int amount ,int* from_nc
 
 void Bank::lock_write(void) {
 	pthread_mutex_lock(&write_lock);
+	//cout << "printout bank locked write" <<endl;
+
 }
 void Bank::unlock_write(void) {
 	pthread_mutex_unlock(&write_lock);
+	//cout << "printout bank unlocked write" <<endl;
+
 }
 
 void Bank::lock_read(void) {
@@ -192,6 +204,8 @@ void Bank::lock_read(void) {
 		pthread_mutex_lock(&write_lock);
 	}
 	pthread_mutex_unlock(&read_lock);
+	//cout << "printout bank locked read" <<endl;
+
 }
 void Bank::unlock_read(void) {
 	pthread_mutex_lock(&read_lock);
@@ -200,42 +214,54 @@ void Bank::unlock_read(void) {
 		pthread_mutex_unlock(&write_lock);
 	}
 	pthread_mutex_unlock(&read_lock);
+	//cout << "printout bank unlocked read" <<endl;
+
 }
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& function of accounts &&&&&&&&&&&&&&&&&&
 Account::Account(int id, string pwd, int amt) : ID(id), password(pwd), amount(amt), read_cnt(0) {
-	pthread_mutex_init(&write_lock, NULL);
-	pthread_mutex_init(&read_lock, NULL);
+	pthread_mutex_init(&acc_write_lock, NULL);
+	pthread_mutex_init(&acc_read_lock, NULL);
 }
 Account::~Account() {
 }
 
 void Account::lock_write(void) {
-	pthread_mutex_lock(&write_lock);
+	pthread_mutex_lock(&acc_write_lock);
+	//cout << "printout acc locked write" <<endl;
+
 }
 void Account::unlock_write(void) {
-	pthread_mutex_unlock(&write_lock);
+	pthread_mutex_unlock(&acc_write_lock);
+	//cout << "printout acc unlocked write" <<endl;
+
 }
 
 void Account::lock_read(void) {
-	pthread_mutex_lock(&read_lock);
-	read_cnt++;
-	if (read_cnt == 1) {
-		pthread_mutex_lock(&write_lock);
+	//cout << "printout acc  trying to locked read" <<endl;
+	pthread_mutex_lock(&(this->acc_read_lock));
+	//cout << "printout acc  trying to locked read2" <<endl;
+
+	this->read_cnt++;
+	if (this->read_cnt == 1) {
+		pthread_mutex_lock(&acc_write_lock);
 	}
-	pthread_mutex_unlock(&read_lock);
+	pthread_mutex_unlock(&acc_read_lock);
+	//cout << "printout acc locked read" <<endl;
+
 }
 void Account::unlock_read(void) {
-	pthread_mutex_lock(&read_lock);
+	pthread_mutex_lock(&acc_read_lock);
 	read_cnt--;
 	if (read_cnt == 0) {
-		pthread_mutex_unlock(&write_lock);
+		pthread_mutex_unlock(&acc_write_lock);
 	}
-	pthread_mutex_unlock(&read_lock);
+	pthread_mutex_unlock(&acc_read_lock);
+	//cout << "printout acc unlocked read" <<endl;
 }
 
 bool Account::comparePassword(string pwd) {
-	return password == pwd;
+	return this->password == pwd;
 }
 
 int Account::updateAmount(int addedAmount) {
@@ -270,11 +296,12 @@ int Account::getAmount() {
 	return res;
 }
 int Account::getAmount(string * pW) {
+	//cout<<"printout maybe here2"<<endl;
 	int res;
-	lock_read();
+	this->lock_read();
 	res = amount;
 	*pW = password ;
-	unlock_read();
+	this->unlock_read();
 	return res;
 }
 
@@ -329,7 +356,6 @@ int main (int argc, char *argv[]) {
 	 }
 	
 	//putint the files in to the atm class with the ID and creating N threads for ATMs
-	cout << Nthreads << endl;;
 	for (int i =1 ; i <= Nthreads; i++){
 
 		ATM atm(i, argv[i]);
@@ -359,7 +385,6 @@ int main (int argc, char *argv[]) {
 			perror("Bank error: pthread_join failed");
 		}
 	}
-	cout << "test\n" << flush;
 
 	if (pthread_join(bank_commissions_thread, NULL)) {
 		perror("Bank error: pthread_join failed");

@@ -28,10 +28,8 @@ bool ATM::closeFile() {
 }
 */
 void* ATM::ATMrun(void* patm) {
-    cout << "\there\n" << flush;
     string line;
     ATM* atm = static_cast<ATM*>(patm);
-    cout << atm->getID() << flush;
     ifstream filehandle(atm->filepath);
 
     while (getline(filehandle, line)) {
@@ -75,13 +73,17 @@ bool ATM::openAcc(vector<string> words) {
     for (const auto& w : words) {
         if (arg == 1) {
             id = atoi(w.c_str());            
+           // cout <<"id: " <<id <<"  ";
            
         }
         else if (arg == 2) {
             pswd = w;
+           // cout <<"pswd: "<< pswd <<"  ";
         }
         else if (arg == 3) {
             amount = atoi(w.c_str());
+           // cout <<"amount: "<< amount <<"  ";
+
         }
         arg++;
     }
