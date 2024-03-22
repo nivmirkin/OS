@@ -13,10 +13,12 @@
 #include <list>
 #include <vector>
 #include <map>
+#include <sstream>
+using namespace std ;
 class Bank;
 extern Bank bank;
-
-using namespace std ;
+extern pthread_mutex_t log_lock;
+extern ofstream logFile;
 
 
 #define SUCCESS 1

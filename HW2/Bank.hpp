@@ -8,10 +8,10 @@
 #include <stdlib.h>
 #include <sstream>
 #include <iostream>
+#include <fstream>
 #include <list>
 #include <string>
 #include <pthread.h>
-#include <fstream>
 #include <cmath>
 #include <algorithm>
 #include <mutex>
@@ -26,7 +26,7 @@
 #define INSFCNT_FUNDS -7
 
 using namespace std;
-
+extern ofstream logFile;
 class Account {
 	int ID;
 	string password;
@@ -58,6 +58,7 @@ public:
 class Bank {
 	int BankBalance;
 	int read_cnt;
+	pthread_mutex_t log_lock;
 	pthread_mutex_t	write_lock;
 	pthread_mutex_t read_lock;
 public:
@@ -78,6 +79,8 @@ public:
 
 	void lock_read(void);
 	void unlock_read(void);
+
+	void writeLog(ostringstream* buff);
 
 
 };
