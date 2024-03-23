@@ -7,19 +7,36 @@
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% function of bank%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Bank::Bank() : BankBalance(0) {
-	pthread_mutex_init(&bankBalanceLock, nullptr);
-	pthread_mutex_init(&log_lock, nullptr);
-	pthread_mutex_init(&write_lock, nullptr);
-	pthread_mutex_init(&read_lock, nullptr);
-
+Bank::Bank() : BankBalance(0),ATMsRunning(true) {
+	if(pthread_mutex_init(&bankBalanceLock, NULL) != 0){
+		perror("Bank error: pthread_mutex_init failed");
+		exit(1);
+	}
+	if(pthread_mutex_init(&log_lock, NULL) != 0){
+		perror("Bank error: pthread_mutex_init failed");
+		exit(1);
+	}
+	if(pthread_mutex_init(&write_lock, NULL) != 0){
+		perror("Bank error: pthread_mutex_init failed");
+		exit(1);
+	}
+	if(pthread_mutex_init(&read_lock, NULL) != 0){
+		perror("Bank error: pthread_mutex_init failed");
+		exit(1);
+	}
+}
+Bank::~Bank() {
+    pthread_mutex_destroy(&bankBalanceLock);
+    pthread_mutex_destroy(&log_lock);
+    pthread_mutex_destroy(&write_lock);
+    pthread_mutex_destroy(&read_lock);
 }
 //%%%%%%%%%
+
 void* Bank::bank_commissions(void* pbank) {
 	Bank* bank = static_cast<Bank*>(pbank);
 	int acc_cmsn, cmsn_perc;
-	while (true) {
-		sleep(3);
+	while (bank->ATMsStatus()) {
 		ostringstream buff;
 		cmsn_perc = rand() % 5 + 1;
 		bank->lock_read();
@@ -30,15 +47,18 @@ void* Bank::bank_commissions(void* pbank) {
 		}
 		bank->writeLog(&buff);
 		bank->unlock_read();
+		sleep(3);
 	}
+	return nullptr;
 }
 
 void* Bank::bank_print_Balance(void* pbank){//print stat to screen
 	Bank* bank = static_cast<Bank*>(pbank);
-	while(true){
+	while(bank->ATMsStatus()){
 		bank->print_stat();
         usleep(500000);
 	}
+	return nullptr;
 }
 void Bank::print_stat(void){
 	pthread_mutex_lock(&bankBalanceLock); 
@@ -221,12 +241,29 @@ void Bank::writeLog(ostringstream* buff){
 	logFile << (*buff).str() << flush;
 	pthread_mutex_unlock(&log_lock);
 }
+bool Bank::ATMsStatus(void){
+	return this->ATMsRunning;
+}
+void Bank::ATMsStart(void){
+	this->ATMsRunning = true;
+}
+void Bank::ATMsFinish(void){
+	this->ATMsRunning = false;
+}
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& function of accounts &&&&&&&&&&&&&&&&&&
 Account::Account(int id, string pwd, int amt) : ID(id), password(pwd), amount(amt), read_cnt(0) {
-	pthread_mutex_init(&acc_write_lock, NULL);
-	pthread_mutex_init(&acc_read_lock, NULL);
+	if(pthread_mutex_init(&acc_write_lock, NULL) != 0){
+		perror("Bank error: pthread_mutex_init failed");
+		exit(1);
+	}
+	if(pthread_mutex_init(&acc_read_lock, NULL) != 0){
+		perror("Bank error: pthread_mutex_init failed");
+		exit(1);
+	}
 }
 Account::~Account() {
+	pthread_mutex_destroy(&acc_write_lock);
+    pthread_mutex_destroy(&acc_read_lock);
 }
 
 void Account::lock_write(void) {
@@ -307,12 +344,18 @@ Bank bank;
 int main (int argc, char *argv[]) {
 	
 	int Nthreads = argc -1 ;
+	int ATMSstillRunning = Nthreads;
+	pthread_mutex_t ATMsStatus_lock;
 	//check if there is no parameters given print error	
 	if(argc == 1){
 		cerr << "Bank error: illegal arguments" << endl;
 	}
 	if(!logFile.is_open()){
 		perror("Bank error: open failed");
+		exit(1);
+	}
+	if(pthread_mutex_init(&ATMsStatus_lock, NULL) != 0){
+		perror("Bank error: pthread_mutex_init failed");
 		exit(1);
 	}
 	//creat N threads 
@@ -335,7 +378,7 @@ int main (int argc, char *argv[]) {
 		 logFile.close();
 		 atm_vec.clear();
 		 delete[] atm_threads;
-		// pthread_mutex_destroy(&(bank.log_lock));
+		 pthread_mutex_destroy(&ATMsStatus_lock);
 		 exit(1);
 	 }
 	//creating the printing the bank nce thread
@@ -344,7 +387,7 @@ int main (int argc, char *argv[]) {
 		 logFile.close();
 		 atm_vec.clear();
 		 delete[] atm_threads;
-		 //pthread_mutex_destroy(&(bank.log_lock));
+		 pthread_mutex_destroy(&ATMsStatus_lock);
 		 exit(1);
 	 }
 	
@@ -359,7 +402,7 @@ int main (int argc, char *argv[]) {
 			perror("Bank error: pthread_create failed");
 			atm_vec.clear();
 			delete[] atm_threads;
-			//pthread_mutex_destroy(&(bank.log_lock));
+			pthread_mutex_destroy(&ATMsStatus_lock);
 			logFile.close();
 			exit(1);
 		}
@@ -370,8 +413,15 @@ int main (int argc, char *argv[]) {
 		if(pthread_join(atm_threads[i-1], NULL) ){
 			perror("Bank error: pthread_join failed");
 		}
+		else {
+			pthread_mutex_lock(&ATMsStatus_lock);
+			ATMSstillRunning-- ;
+			if (ATMSstillRunning == 0){
+				bank.ATMsFinish();
+			}
+			pthread_mutex_unlock(&ATMsStatus_lock);
+		}
 	}
-
 	if (pthread_join(bank_commissions_thread, NULL)) {
 		perror("Bank error: pthread_join failed");
 	}
@@ -380,10 +430,11 @@ int main (int argc, char *argv[]) {
 	if (pthread_join(bank_print_Balance, NULL)) {
 		perror("Bank error: pthread_join failed");
 	}
+	
 	//*********************ending deleting/freeing and closeing everything that had been used********** 
 	atm_vec.clear();
 	delete[] atm_threads;
-	//pthread_mutex_destroy(&log_lock);
+	pthread_mutex_destroy(&ATMsStatus_lock);
 	
 	if (logFile.fail()) {
 		perror("Bank error: close failed");

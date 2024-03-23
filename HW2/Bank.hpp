@@ -52,19 +52,23 @@ public:
 	int getAmount();
 	int getAmount(string* pW);
 
+	
 };
 
 
 class Bank {
 	int BankBalance;
 	int read_cnt;
+	bool ATMsRunning;
 	pthread_mutex_t log_lock;
 	pthread_mutex_t	write_lock;
 	pthread_mutex_t read_lock;
 public:
 	pthread_mutex_t bankBalanceLock;
 	map<int, Account*> accounts;
+	
 	Bank();
+	~Bank();
 	static void* bank_commissions(void* pbank);
 	static void* bank_print_Balance(void* pbank);
 	void print_stat(void);
@@ -81,6 +85,9 @@ public:
 	void unlock_read(void);
 
 	void writeLog(ostringstream* buff);
+	bool ATMsStatus(void);
+	void ATMsStart(void);
+	void ATMsFinish(void);
 
 
 };
