@@ -3,35 +3,16 @@
 #include <cstdlib>        
 using namespace std;
 ATM::ATM(int id, string filePath) : id(id), filepath(filePath) {}
-    //fileHandle.open(filePath);
-    //if (!fileHandle.is_open()) {
-    //    std::cerr << "Bank error: failed to open file" << std::endl;
-    //    // You might want to handle the error here, like throwing an exception
-    //}
-    //else {
-    //    std::cout << filePath << " opened successfully" << std::endl;
-    //}
-
-/*bool ATM::loadFile(const char* filePath) {
-    const char* file = espacos.c_str();
-    cout << path << "\there\n" << flush;
-    fileHandle.open(path);
-    return true; // Check if the file is not open
-}*/
-/*
-bool ATM::closeFile() {
-    if (fileHandle.is_open()) { // Check if the file is open
-        fileHandle.close();
-        return false;
-    }
-    return true;
-}
-*/
+//ATM thread function - reads input and calls fitting function
 void* ATM::ATMrun(void* patm) {
     bank.ATMsStart();
     string line;
     ATM* atm = static_cast<ATM*>(patm);
     ifstream filehandle(atm->filepath);
+    if (!filehandle.is_open()) {
+        perror("Bank error: open failed");
+        return nullptr;
+    }
     while (getline(filehandle, line)) {
         usleep(100000);
         // Process each line here
@@ -65,9 +46,10 @@ void* ATM::ATMrun(void* patm) {
             }
         }
     }
+    filehandle.close();
     return nullptr;
 }
-
+//  Operation function - parsing input and calling bank function
 bool ATM::openAcc(vector<string> words) {
     ostringstream buff;
     int arg = 0;
@@ -83,7 +65,6 @@ bool ATM::openAcc(vector<string> words) {
         }
         else if (arg == 3) {
             amount = atoi(w.c_str());
-
         }
         arg++;
     }

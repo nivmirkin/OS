@@ -7,6 +7,7 @@
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% function of bank%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//Constructor
 Bank::Bank() : BankBalance(0),ATMsRunning(true) {
 	if(pthread_mutex_init(&bankBalanceLock, NULL) != 0){
 		perror("Bank error: pthread_mutex_init failed");
@@ -25,6 +26,7 @@ Bank::Bank() : BankBalance(0),ATMsRunning(true) {
 		exit(1);
 	}
 }
+//Destructor
 Bank::~Bank() {
     pthread_mutex_destroy(&bankBalanceLock);
     pthread_mutex_destroy(&log_lock);
@@ -32,7 +34,7 @@ Bank::~Bank() {
     pthread_mutex_destroy(&read_lock);
 }
 //%%%%%%%%%
-
+//commissions thread function - wakes up every 3 sec
 void* Bank::bank_commissions(void* pbank) {
 	Bank* bank = static_cast<Bank*>(pbank);
 	int acc_cmsn, cmsn_perc;
@@ -51,7 +53,7 @@ void* Bank::bank_commissions(void* pbank) {
 	}
 	return nullptr;
 }
-
+//Bank Balance print to stdout thread funtion - wakes up every .5 sec
 void* Bank::bank_print_Balance(void* pbank){//print stat to screen
 	Bank* bank = static_cast<Bank*>(pbank);
 	while(bank->ATMsStatus()){
@@ -77,7 +79,7 @@ void Bank::print_stat(void){
 	 pthread_mutex_unlock(&bankBalanceLock);
 	 cout << "The Bank has " << current_bank_balance << " $" << endl;
 }
-
+//Add Account to account list 
 int Bank::addAcc(int id, string pswd, int amount) {
 	int res = SUCCESS;
 	Account* acnt;
@@ -93,7 +95,7 @@ int Bank::addAcc(int id, string pswd, int amount) {
 	unlock_write();
 	return res;
 }
-
+//Deposit money to account in account list
 int Bank::deposit(int id, string pswd, int amount) {
 	int res;
 	lock_read();
@@ -113,7 +115,7 @@ int Bank::deposit(int id, string pswd, int amount) {
 	unlock_read();
 	return res;
 }
-
+//withdraw money from account in account list
 int Bank::withdraw(int id, string pswd, int amount) {
 	int res;
 	lock_read();
@@ -136,8 +138,7 @@ int Bank::withdraw(int id, string pswd, int amount) {
 	unlock_read();
 	return res;
 }
-
-
+//Check the balance of account in account list
 int Bank::checkBalance(int id, string pswd) {
 	int res;
 	lock_read();
@@ -158,7 +159,7 @@ int Bank::checkBalance(int id, string pswd) {
 	return res;
 }
 
-
+//Remove account from account list
 int Bank::removeAcc(int id,string pswd) {
 	int res;
 	lock_write();
@@ -179,7 +180,7 @@ int Bank::removeAcc(int id,string pswd) {
 	unlock_write();
 	return res;
 }
-
+//Transer money from account to other account 
 int  Bank::transer(int from_id, string pswd, int to_id, int amount ,int* from_nce) {
 	int res;
 	lock_read();
@@ -211,14 +212,14 @@ int  Bank::transer(int from_id, string pswd, int to_id, int amount ,int* from_nc
 	return res;
 }
 
-
+//Account list access locks - read & write
 void Bank::lock_write(void) {
 	pthread_mutex_lock(&write_lock);
 }
 void Bank::unlock_write(void) {
 	pthread_mutex_unlock(&write_lock);
 }
-
+// If reading from account list write(add/remove) is disavbled until read is finished
 void Bank::lock_read(void) {
 	pthread_mutex_lock(&read_lock);
 	read_cnt++;
@@ -241,6 +242,7 @@ void Bank::writeLog(ostringstream* buff){
 	logFile << (*buff).str() << flush;
 	pthread_mutex_unlock(&log_lock);
 }
+//Control funtion for ATM status - when ATMS finish reading input status is false and all threads finish
 bool Bank::ATMsStatus(void){
 	return this->ATMsRunning;
 }
@@ -251,6 +253,7 @@ void Bank::ATMsFinish(void){
 	this->ATMsRunning = false;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& function of accounts &&&&&&&&&&&&&&&&&&
+//Constructor
 Account::Account(int id, string pwd, int amt) : ID(id), password(pwd), amount(amt), read_cnt(0) {
 	if(pthread_mutex_init(&acc_write_lock, NULL) != 0){
 		perror("Bank error: pthread_mutex_init failed");
@@ -261,11 +264,12 @@ Account::Account(int id, string pwd, int amt) : ID(id), password(pwd), amount(am
 		exit(1);
 	}
 }
+//Destructor
 Account::~Account() {
 	pthread_mutex_destroy(&acc_write_lock);
     pthread_mutex_destroy(&acc_read_lock);
 }
-
+//Account data access locks - read & write
 void Account::lock_write(void) {
 	pthread_mutex_lock(&acc_write_lock);
 }
@@ -358,19 +362,14 @@ int main (int argc, char *argv[]) {
 		perror("Bank error: pthread_mutex_init failed");
 		exit(1);
 	}
-	//creat N threads 
+	//create N threads 
 	pthread_t* atm_threads = new pthread_t[Nthreads];
 	//creating a vec to store all the ATMs
 	vector <ATM*> atm_vec;
-	//creat bank thread for the commition and for the nce printing 
+	//create bank thread for the commition and for the nce printing 
 	pthread_t bank_commissions_thread;
 	pthread_t bank_print_Balance;
-	
-	//creating a mutex //TODO add hanle to all inits
-	/*if (pthread_mutex_init(&bank-log_lock, NULL) != 0) {
-		perror("Bank error: pthread_mutex_init failed");
-		exit(1);
-	}*/
+
 	//*********************************creating threads***********************************
 	//creating the commition thread
 	if (pthread_create(&bank_commissions_thread, NULL, Bank::bank_commissions, ((void*)&bank))) {
